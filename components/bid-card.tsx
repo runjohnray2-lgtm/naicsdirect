@@ -22,11 +22,36 @@ function getDaysUntil(dateStr: string): number | null {
 }
 
 function urgencyConfig(days: number | null) {
-  if (days === null) return { label: "No Deadline", textClass: "text-slate-400", badgeClass: "bg-slate-500/10 border-slate-500/20 text-slate-400" }
-  if (days < 0) return { label: "Closed", textClass: "text-slate-500", badgeClass: "bg-slate-500/10 border-slate-500/20 text-slate-500" }
-  if (days <= 2) return { label: `🔴 ${days}d left`, textClass: "text-red-400", badgeClass: "bg-red-500/10 border-red-500/30 text-red-400" }
-  if (days <= 7) return { label: `🟡 ${days}d left`, textClass: "text-amber-400", badgeClass: "bg-amber-500/10 border-amber-500/30 text-amber-400" }
-  return { label: `🟢 ${days}d left`, textClass: "text-emerald-400", badgeClass: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" }
+  if (days === null) return {
+    label: "No Deadline",
+    textClass: "text-slate-400",
+    badgeClass: "bg-slate-500/10 border-slate-500/20 text-slate-400",
+    cardBorderClass: "border-l-slate-700",
+  }
+  if (days < 0) return {
+    label: "Closed",
+    textClass: "text-slate-500",
+    badgeClass: "bg-slate-500/10 border-slate-500/20 text-slate-500",
+    cardBorderClass: "border-l-slate-700",
+  }
+  if (days <= 2) return {
+    label: `${days}d left`,
+    textClass: "text-red-400",
+    badgeClass: "bg-red-500/10 border-red-500/30 text-red-400",
+    cardBorderClass: "border-l-red-500",
+  }
+  if (days <= 7) return {
+    label: `${days}d left`,
+    textClass: "text-amber-400",
+    badgeClass: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+    cardBorderClass: "border-l-amber-500",
+  }
+  return {
+    label: `${days}d left`,
+    textClass: "text-emerald-400",
+    badgeClass: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
+    cardBorderClass: "border-l-emerald-500",
+  }
 }
 
 function typeConfig(code: string) {
@@ -56,15 +81,20 @@ export function BidCard({ bid }: BidCardProps) {
   } catch {}
 
   return (
-    <Card className="bg-slate-900 border-slate-800 hover:border-slate-600 transition-all duration-200 group cursor-pointer"
-      onClick={() => window.open(samUrl, "_blank")}>
+    <Card
+      className={cn(
+        "bg-slate-900 border-slate-800 hover:border-slate-600 transition-all duration-200 group cursor-pointer border-l-4",
+        urgency.cardBorderClass
+      )}
+      onClick={() => window.open(samUrl, "_blank")}
+    >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <Badge className={cn("text-xs border px-2 py-0.5", typeConfig(bid.typeCode))}>{bid.type}</Badge>
               <Badge className={cn("text-xs border px-2 py-0.5 font-semibold", urgency.badgeClass)}>
-                {days !== null && days <= 2 && <AlertCircle className="w-3 h-3 mr-1 inline" />}
+                {days !== null && days >= 0 && days <= 2 && <AlertCircle className="w-3 h-3 mr-1 inline" />}
                 {urgency.label}
               </Badge>
             </div>
@@ -83,8 +113,12 @@ export function BidCard({ bid }: BidCardProps) {
               </div>
             </div>
           </div>
-          <Button size="sm" variant="ghost" className="text-slate-600 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 flex-shrink-0 p-1.5 h-auto"
-            onClick={e => { e.stopPropagation(); window.open(samUrl, "_blank") }}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-slate-600 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 flex-shrink-0 p-1.5 h-auto"
+            onClick={e => { e.stopPropagation(); window.open(samUrl, "_blank") }}
+          >
             <ExternalLink className="w-4 h-4" />
           </Button>
         </div>

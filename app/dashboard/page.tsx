@@ -10,7 +10,9 @@ import { BidCard } from "@/components/bid-card"
 import { NICHES } from "@/lib/niches"
 import { Bid } from "@/types"
 import { cn } from "@/lib/utils"
-import { Zap, RefreshCw, AlertCircle, BarChart3, ChevronLeft } from "lucide-react"
+import { Zap, RefreshCw, AlertCircle, BarChart3, ChevronLeft, X } from "lucide-react"
+
+type Bucket = "urgent" | "soon" | "open" | null
 
 function DashboardContent() {
   const searchParams = useSearchParams()
@@ -22,10 +24,12 @@ function DashboardContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+  const [filterBucket, setFilterBucket] = useState<Bucket>(null)
 
   const fetchBids = useCallback(async (nicheId: string) => {
     setLoading(true)
     setError(null)
+    setFilterBucket(null)
     try {
       const res = await fetch(`/api/bids?niche=${nicheId}`)
       const data = await res.json()
@@ -47,19 +51,26 @@ function DashboardContent() {
 
   const currentNiche = NICHES.find(n => n.id === activeNiche) || NICHES[0]
 
-  // Urgency stats
-  const urgent = bids.filter(b => {
-    const d = Math.ceil((new Date(b.responseDate).getTime() - Date.now()) / 86400000)
-    return d >= 0 && d <= 2
-  }).length
-  const soon = bids.filter(b => {
-    const d = Math.ceil((new Date(b.responseDate).getTime() - Date.now()) / 86400000)
-    return d > 2 && d <= 7
-  }).length
-  const open = bids.filter(b => {
-    const d = Math.ceil((new Date(b.responseDate).getTime() - Date.now()) / 86400000)
-    return d > 7
-  }).length
+  // Categorize bids by urgency (days until deadline)
+  const getDays = (b: Bid) =>
+    b.responseDate
+      ? Math.ceil((new Date(b.responseDate).getTime() - Date.now()) / 86400000)
+      : Infinity
+
+  const urgentBids = bids.filter(b => { const d = getDays(b); return d >= 0 && d <= 2 })
+  const soonBids   = bids.filter(b => { const d = getDays(b); return d > 2 && d <= 7 })
+  const openBids   = bids.filter(b => { const d = getDays(b); return d > 7 })
+  const openCount  = urgentBids.length + soonBids.length + openBids.length
+
+  // Filter displayed bids by selected bucket
+  const displayBids =
+    filterBucket === "urgent" ? urgentBids :
+    filterBucket === "soon"   ? soonBids :
+    filterBucket === "open"   ? openBids :
+    bids
+
+  const toggleBucket = (bucket: Bucket) =>
+    setFilterBucket(prev => prev === bucket ? null : bucket)
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
@@ -126,7 +137,7 @@ function DashboardContent() {
                 <p className="text-indigo-400 text-xs font-semibold mb-1">Beta Access</p>
                 <p className="text-slate-500 text-xs">All 8 niches unlocked during beta period.</p>
                 <Link href="/#pricing" className="text-indigo-400 hover:text-indigo-300 text-xs mt-2 inline-block underline underline-offset-2">
-                  View pricing →
+                  View pricing &#x2192;
                 </Link>
               </div>
             </div>
@@ -163,28 +174,79 @@ function DashboardContent() {
               </h1>
               <p className="text-slate-400 text-sm mt-0.5">{currentNiche.description}</p>
             </div>
-            {!loading && !error && bids.length > 0 && (
+            {!loading && !error && openCount > 0 && (
               <Badge className="bg-slate-800 text-slate-300 border-slate-700 text-xs">
-                {bids.length} active bids
+                {openCount} active bids
               </Badge>
             )}
           </div>
 
-          {/* Stats row */}
+          {/* Urgency buckets — clickable to filter the list below */}
           {!loading && !error && bids.length > 0 && (
-            <div className="grid grid-cols-3 gap-3 mb-5">
-              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
-                <div className="text-2xl font-bold text-red-400">{urgent}</div>
-                <div className="text-xs text-slate-500 mt-0.5">Closing ≤2 days</div>
-              </div>
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-center">
-                <div className="text-2xl font-bold text-amber-400">{soon}</div>
-                <div className="text-xs text-slate-500 mt-0.5">Closing 3–7 days</div>
-              </div>
-              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
-                <div className="text-2xl font-bold text-emerald-400">{open}</div>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <button
+                onClick={() => toggleBucket("urgent")}
+                title="Click to filter by closing soon"
+                className={cn(
+                  "rounded-xl p-3 text-center border transition-all",
+                  filterBucket === "urgent"
+                    ? "bg-red-500/25 border-red-500/60 ring-2 ring-red-500/30"
+                    : "bg-red-500/10 border-red-500/20 hover:bg-red-500/20"
+                )}
+              >
+                <div className="text-2xl font-bold text-red-400">{urgentBids.length}</div>
+                <div className="text-xs text-slate-500 mt-0.5">Closing &#x2264;2 days</div>
+              </button>
+              <button
+                onClick={() => toggleBucket("soon")}
+                title="Click to filter by closing this week"
+                className={cn(
+                  "rounded-xl p-3 text-center border transition-all",
+                  filterBucket === "soon"
+                    ? "bg-amber-500/25 border-amber-500/60 ring-2 ring-amber-500/30"
+                    : "bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20"
+                )}
+              >
+                <div className="text-2xl font-bold text-amber-400">{soonBids.length}</div>
+                <div className="text-xs text-slate-500 mt-0.5">Closing 3&#x2013;7 days</div>
+              </button>
+              <button
+                onClick={() => toggleBucket("open")}
+                title="Click to filter by open bids"
+                className={cn(
+                  "rounded-xl p-3 text-center border transition-all",
+                  filterBucket === "open"
+                    ? "bg-emerald-500/25 border-emerald-500/60 ring-2 ring-emerald-500/30"
+                    : "bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20"
+                )}
+              >
+                <div className="text-2xl font-bold text-emerald-400">{openBids.length}</div>
                 <div className="text-xs text-slate-500 mt-0.5">Open &gt;7 days</div>
-              </div>
+              </button>
+            </div>
+          )}
+
+          {/* Active filter indicator */}
+          {filterBucket && (
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-slate-400 text-xs">
+                Filtering:{" "}
+                <span className={cn(
+                  "font-medium",
+                  filterBucket === "urgent" ? "text-red-400" :
+                  filterBucket === "soon"   ? "text-amber-400" : "text-emerald-400"
+                )}>
+                  {filterBucket === "urgent" ? "Closing ≤2 days" :
+                   filterBucket === "soon"   ? "Closing 3–7 days" : "Open >7 days"}
+                </span>
+              </span>
+              <button
+                onClick={() => setFilterBucket(null)}
+                className="text-slate-600 hover:text-white transition-colors"
+                title="Clear filter"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           )}
 
@@ -235,7 +297,7 @@ function DashboardContent() {
             </div>
           )}
 
-          {/* EMPTY */}
+          {/* EMPTY — no bids at all */}
           {!loading && !error && bids.length === 0 && (
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-10 text-center">
               <BarChart3 className="w-10 h-10 text-slate-600 mx-auto mb-3" />
@@ -244,15 +306,33 @@ function DashboardContent() {
             </div>
           )}
 
+          {/* EMPTY BUCKET — filtered to zero */}
+          {!loading && !error && bids.length > 0 && displayBids.length === 0 && (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-10 text-center">
+              <BarChart3 className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-400 font-medium mb-1">No bids in this window</p>
+              <p className="text-slate-500 text-sm mb-4">Try a different time bucket or view all bids.</p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800"
+                onClick={() => setFilterBucket(null)}
+              >
+                Show all bids
+              </Button>
+            </div>
+          )}
+
           {/* BID LIST */}
-          {!loading && !error && bids.length > 0 && (
+          {!loading && !error && displayBids.length > 0 && (
             <div className="space-y-3">
-              {bids.map(bid => (
+              {displayBids.map(bid => (
                 <BidCard key={bid.id} bid={bid} />
               ))}
               <div className="text-center pt-4">
                 <p className="text-slate-600 text-xs">
-                  Showing {bids.length} of {total.toLocaleString()} total results from SAM.gov
+                  Showing {displayBids.length} of {openCount} active bids
+                  {filterBucket ? " (filtered)" : ""}
                 </p>
                 <p className="text-slate-700 text-xs mt-1">
                   Data sourced from SAM.gov public API. Updated every 5 minutes.

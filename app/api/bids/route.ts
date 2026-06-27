@@ -44,11 +44,15 @@ export async function GET(request: NextRequest) {
       return true
     })
 
-    const active = unique.filter(h =>
-      !h.isCanceled &&
-      h.isActive &&
-      (h.type as { code?: string })?.code !== "a"
-    )
+    // Filter: not canceled, isActive, not award notice, and response date must be in the future
+    const now = new Date()
+    const active = unique.filter(h => {
+      if (h.isCanceled || !h.isActive || (h.type as { code?: string })?.code === "a") return false
+      if (h.responseDate) {
+        return new Date(h.responseDate as string) >= now
+      }
+      return true
+    })
 
     active.sort((a, b) => {
       const da = a.responseDate ? new Date(a.responseDate as string).getTime() : Infinity
