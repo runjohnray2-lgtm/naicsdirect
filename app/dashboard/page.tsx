@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { Bid } from "@/types"
 import { cn } from "@/lib/utils"
 import { Zap, RefreshCw, AlertCircle, BarChart3, ChevronLeft } from "lucide-react"
 
-export default function DashboardPage() {
+function DashboardContent() {
   const searchParams = useSearchParams()
   const initialNiche = searchParams.get("niche") || NICHES[0].id
 
@@ -47,6 +47,7 @@ export default function DashboardPage() {
 
   const currentNiche = NICHES.find(n => n.id === activeNiche) || NICHES[0]
 
+  // Urgency stats
   const urgent = bids.filter(b => {
     const d = Math.ceil((new Date(b.responseDate).getTime() - Date.now()) / 86400000)
     return d >= 0 && d <= 2
@@ -62,6 +63,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
+      {/* HEADER */}
       <header className="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -80,26 +82,41 @@ export default function DashboardPage() {
                 Updated {lastRefresh.toLocaleTimeString()}
               </span>
             )}
-            <Button size="sm" variant="outline" className="border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 gap-2" onClick={() => fetchBids(activeNiche)} disabled={loading}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 gap-2"
+              onClick={() => fetchBids(activeNiche)}
+              disabled={loading}
+            >
               <RefreshCw className={cn("w-3.5 h-3.5", loading && "animate-spin")} />
               <span className="hidden sm:inline">Refresh</span>
             </Button>
-            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs hidden sm:flex">BETA</Badge>
+            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs hidden sm:flex">
+              BETA
+            </Badge>
           </div>
         </div>
       </header>
 
       <div className="flex flex-1 max-w-7xl mx-auto w-full">
+        {/* SIDEBAR */}
         <aside className="w-56 flex-shrink-0 border-r border-slate-800/60 hidden lg:block">
           <div className="sticky top-16 p-3 space-y-1">
-            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider px-2 py-2">Industries</p>
+            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider px-2 py-2">
+              Industries
+            </p>
             {NICHES.map(niche => (
-              <button key={niche.id} onClick={() => setActiveNiche(niche.id)}
-                className={cn("w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all text-left",
+              <button
+                key={niche.id}
+                onClick={() => setActiveNiche(niche.id)}
+                className={cn(
+                  "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all text-left",
                   activeNiche === niche.id
                     ? `${niche.bgClass} ${niche.colorClass} border ${niche.borderClass}`
                     : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-                )}>
+                )}
+              >
                 <span className="text-base">{niche.emoji}</span>
                 <span className="font-medium truncate">{niche.name}</span>
               </button>
@@ -108,36 +125,52 @@ export default function DashboardPage() {
               <div className="bg-indigo-950/40 border border-indigo-500/20 rounded-lg p-3">
                 <p className="text-indigo-400 text-xs font-semibold mb-1">Beta Access</p>
                 <p className="text-slate-500 text-xs">All 8 niches unlocked during beta period.</p>
-                <Link href="/#pricing" className="text-indigo-400 hover:text-indigo-300 text-xs mt-2 inline-block underline underline-offset-2">View pricing →</Link>
+                <Link href="/#pricing" className="text-indigo-400 hover:text-indigo-300 text-xs mt-2 inline-block underline underline-offset-2">
+                  View pricing →
+                </Link>
               </div>
             </div>
           </div>
         </aside>
 
+        {/* MAIN CONTENT */}
         <main className="flex-1 min-w-0 p-4 sm:p-6">
-          <div className="flex gap-2 overflow-x-auto pb-3 mb-4 lg:hidden">
+          {/* Mobile niche tabs */}
+          <div className="flex gap-2 overflow-x-auto pb-3 mb-4 lg:hidden scrollbar-hide">
             {NICHES.map(niche => (
-              <button key={niche.id} onClick={() => setActiveNiche(niche.id)}
-                className={cn("flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border transition-all",
+              <button
+                key={niche.id}
+                onClick={() => setActiveNiche(niche.id)}
+                className={cn(
+                  "flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium border transition-all",
                   activeNiche === niche.id
                     ? `${niche.bgClass} ${niche.colorClass} ${niche.borderClass}`
                     : "text-slate-400 border-slate-800 hover:border-slate-700 hover:text-white"
-                )}>
-                <span>{niche.emoji}</span><span>{niche.name}</span>
+                )}
+              >
+                <span>{niche.emoji}</span>
+                <span>{niche.name}</span>
               </button>
             ))}
           </div>
 
+          {/* Niche header */}
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 className="text-xl font-bold text-white flex items-center gap-2"><span>{currentNiche.emoji}</span>{currentNiche.name}</h1>
+              <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                <span>{currentNiche.emoji}</span>
+                {currentNiche.name}
+              </h1>
               <p className="text-slate-400 text-sm mt-0.5">{currentNiche.description}</p>
             </div>
             {!loading && !error && bids.length > 0 && (
-              <Badge className="bg-slate-800 text-slate-300 border-slate-700 text-xs">{bids.length} active bids</Badge>
+              <Badge className="bg-slate-800 text-slate-300 border-slate-700 text-xs">
+                {bids.length} active bids
+              </Badge>
             )}
           </div>
 
+          {/* Stats row */}
           {!loading && !error && bids.length > 0 && (
             <div className="grid grid-cols-3 gap-3 mb-5">
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
@@ -155,12 +188,16 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* NAICS codes */}
           <div className="flex flex-wrap gap-1.5 mb-5">
             {currentNiche.naics.map(code => (
-              <Badge key={code} className="bg-slate-800/60 text-slate-400 border-slate-700 text-xs font-mono">{code}</Badge>
+              <Badge key={code} className="bg-slate-800/60 text-slate-400 border-slate-700 text-xs font-mono">
+                {code}
+              </Badge>
             ))}
           </div>
 
+          {/* LOADING */}
           {loading && (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
@@ -172,20 +209,33 @@ export default function DashboardPage() {
                     </div>
                     <Skeleton className="h-6 w-20 bg-slate-800 rounded-full" />
                   </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-5 w-24 bg-slate-800 rounded-full" />
+                    <Skeleton className="h-5 w-28 bg-slate-800 rounded-full" />
+                  </div>
                 </div>
               ))}
             </div>
           )}
 
+          {/* ERROR */}
           {!loading && error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
               <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-3" />
               <p className="text-red-400 font-medium mb-1">Failed to load bids</p>
               <p className="text-slate-400 text-sm mb-4">{error}</p>
-              <Button size="sm" variant="outline" className="border-red-500/30 text-red-400 hover:bg-red-500/10" onClick={() => fetchBids(activeNiche)}>Try Again</Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                onClick={() => fetchBids(activeNiche)}
+              >
+                Try Again
+              </Button>
             </div>
           )}
 
+          {/* EMPTY */}
           {!loading && !error && bids.length === 0 && (
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-10 text-center">
               <BarChart3 className="w-10 h-10 text-slate-600 mx-auto mb-3" />
@@ -194,16 +244,36 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* BID LIST */}
           {!loading && !error && bids.length > 0 && (
             <div className="space-y-3">
-              {bids.map(bid => <BidCard key={bid.id} bid={bid} />)}
+              {bids.map(bid => (
+                <BidCard key={bid.id} bid={bid} />
+              ))}
               <div className="text-center pt-4">
-                <p className="text-slate-600 text-xs">Showing {bids.length} of {total.toLocaleString()} total results from SAM.gov</p>
+                <p className="text-slate-600 text-xs">
+                  Showing {bids.length} of {total.toLocaleString()} total results from SAM.gov
+                </p>
+                <p className="text-slate-700 text-xs mt-1">
+                  Data sourced from SAM.gov public API. Updated every 5 minutes.
+                </p>
               </div>
             </div>
           )}
         </main>
       </div>
     </div>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-slate-400 text-sm">Loading dashboard...</div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   )
 }
