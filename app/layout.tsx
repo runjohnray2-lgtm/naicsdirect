@@ -1,20 +1,18 @@
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
-
-export const metadata: Metadata = {
-  title: "NAICS Direct — Federal Bids Filtered For Your Industry",
-  description: "Stop paying $500/month for bids you don't need. NAICS Direct shows only contracts in your exact industry. Real SAM.gov data. Starting at $29/month.",
-}
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body className={`${inter.variable} font-sans min-h-screen bg-slate-950 text-white antialiased`}>
-        {children}
-      </body>
-    </html>
-  )
-}
+aW1wb3J0IHR5cGUgeyBNZXRhZGF0YSB9IGZyb20gIm5leHQiCmltcG9ydCB7
+IEludGVyIH0gZnJvbSAibmV4dC9mb250L2dvb2dsZSIKaW1wb3J0IHsgQW5h
+bHl0aWNzIH0gZnJvbSAiQHZlcmNlbC9hbmFseXRpY3MvbmV4dCIKaW1wb3J0
+ICIuL2dsb2JhbHMuY3NzIgoKY29uc3QgaW50ZXIgPSBJbnRlcih7IHN1YnNl
+dHM6IFsibGF0aW4iXSwgdmFyaWFibGU6ICItLWZvbnQtaW50ZXIiIH0pCgpl
+eHBvcnQgY29uc3QgbWV0YWRhdGE6IE1ldGFkYXRhID0gewogIHRpdGxlOiAi
+TkFJQ1MgRGlyZWN0IOKAlCBGZWRlcmFsIEJpZHMgRmlsdGVyZWQgRm9yIFlv
+dXIgSW5kdXN0cnkiLAogIGRlc2NyaXB0aW9uOiAiU3RvcCBwYXlpbmcgJDUw
+MC9tb250aCBmb3IgYmlkcyB5b3UgZG9uJ3QgbmVlZC4gTkFJQ1MgRGlyZWN0
+IHNob3dzIG9ubHkgY29udHJhY3RzIGluIHlvdXIgZXhhY3QgaW5kdXN0cnku
+IFJlYWwgU0FNLmdvdiBkYXRhLiBTdGFydGluZyBhdCAkMjkvbW9udGguIiwK
+fQoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUm9vdExheW91dCh7IGNoaWxk
+cmVuIH06IHsgY2hpbGRyZW46IFJlYWN0LlJlYWN0Tm9kZSB9KSB7CiAgcmV0
+dXJuICgKICAgIDxodG1sIGxhbmc9ImVuIj4KICAgICAgPGJvZHkgY2xhc3NO
+YW1lPXtgJHtpbnRlci52YXJpYWJsZX0gZm9udC1zYW5zIG1pbi1oLXNjcmVl
+biBiZy1zbGF0ZS05NTAgdGV4dC13aGl0ZSBhbnRpYWxpYXNlZGB9PgogICAg
+ICAge2NoaWxkcmVufQogICAgICAgIDxBbmFseXRpY3MgLz4KICAgICAgPC9i
+b2R5PgogICAgPC9odG1sPgogICkKfQo=
