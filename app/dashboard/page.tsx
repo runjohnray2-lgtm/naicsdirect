@@ -252,7 +252,7 @@ function DashboardContent() {
 
           {/* NAICS codes */}
           <div className="flex flex-wrap gap-1.5 mb-5">
-            {currentNiche.naics.map(code => (
+            {currentNiche.naicsCodes.map(code => (
               <Badge key={code} className="bg-slate-800/60 text-slate-400 border-slate-700 text-xs font-mono">
                 {code}
               </Badge>
@@ -335,7 +335,7 @@ function DashboardContent() {
                   {filterBucket ? " (filtered)" : ""}
                 </p>
                 <p className="text-slate-700 text-xs mt-1">
-                  Data sourced from SAM.gov public API. Updated every 5 minutes.
+                  Data sourced from SAM.gov · synced daily at 7 AM Pacific.
                 </p>
               </div>
             </div>
