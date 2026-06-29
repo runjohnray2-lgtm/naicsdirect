@@ -112,7 +112,7 @@ export default async function BidsPage({
               }`}
             >
               <span>{niche.emoji}</span>
-              {niche.label}
+              {niche.name}
             </Link>
           ))}
         </div>
