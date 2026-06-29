@@ -58,15 +58,38 @@ model VerificationToken {
 }
 
 model Subscription {
-  id                     String    @id @default(cuid())
-  userId                 String    @unique
-  stripeCustomerId       String    @unique
-  stripeSubscriptionId   String?   @unique
-  stripePriceId          String?
-  stripeCurrentPeriodEnd DateTime?
-  status                 String    @default("trialing")
-  trialEnd               DateTime?
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
-  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                       String    @id @default(cuid())
+  userId                   String    @unique
+  stripeCustomerId         String    @unique
+  stripeSubscriptionId     String?   @unique
+  stripePriceId            String?
+  stripeCurrentPeriodEnd   DateTime?
+  status                   String    @default("trialing")
+  trialEnd                 DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  user                     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Bid {
+  id                 String    @id @default(cuid())
+  noticeId           String    @unique
+  title              String
+  solicitationNumber String?
+  agency             String?
+  naicsCode          String?
+  niche              String
+  postedDate         DateTime?
+  responseDeadline   DateTime?
+  setAside           String?
+  bidType            String?
+  uiLink             String?
+  active             Boolean   @default(true)
+  syncedAt           DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([niche])
+  @@index([postedDate])
+  @@index([responseDeadline])
+  @@index([active])
 }

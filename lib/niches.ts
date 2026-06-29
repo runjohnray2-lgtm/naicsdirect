@@ -1,106 +1,70 @@
 export interface Niche {
   id: string
-  name: string
+  label: string
   emoji: string
   description: string
-  naics: string[]
-  searchTerms: string[]
-  colorClass: string
-  bgClass: string
-  borderClass: string
+  naicsCodes: string[]
 }
 
 export const NICHES: Niche[] = [
   {
     id: "flooring",
-    name: "Flooring & Tile",
+    label: "Flooring & Tile",
     emoji: "🪵",
-    description: "Carpet, hardwood, tile, vinyl, and flooring installation contracts",
-    naics: ["238330", "442210", "423390"],
-    searchTerms: ["flooring", "carpet", "tile installation"],
-    colorClass: "text-amber-400",
-    bgClass: "bg-amber-500/10",
-    borderClass: "border-amber-500/30",
+    description: "Flooring installation, materials, and related services",
+    naicsCodes: ["238330", "442210", "314110", "314120", "314910"],
   },
   {
     id: "janitorial",
-    name: "Janitorial Supplies",
+    label: "Janitorial Supplies",
     emoji: "🧹",
-    description: "Cleaning supplies, sanitation products, and janitorial equipment",
-    naics: ["423850", "561720", "325612"],
-    searchTerms: ["janitorial", "cleaning supplies", "sanitation"],
-    colorClass: "text-blue-400",
-    bgClass: "bg-blue-500/10",
-    borderClass: "border-blue-500/30",
+    description: "Cleaning products, janitorial services, and sanitation supplies",
+    naicsCodes: ["561720", "561722", "325612", "325611", "325613"],
   },
   {
     id: "hvac",
-    name: "HVAC Equipment",
+    label: "HVAC Equipment",
     emoji: "❄️",
-    description: "Heating, ventilation, air conditioning parts and equipment",
-    naics: ["423730", "238220", "333415"],
-    searchTerms: ["HVAC", "heating cooling", "air conditioning"],
-    colorClass: "text-cyan-400",
-    bgClass: "bg-cyan-500/10",
-    borderClass: "border-cyan-500/30",
+    description: "Heating, ventilation, air conditioning equipment and services",
+    naicsCodes: ["238220", "333415", "811310", "423720", "238210"],
   },
   {
     id: "furniture",
-    name: "Office Furniture",
+    label: "Office Furniture",
     emoji: "🪑",
-    description: "Desks, chairs, filing systems, and workspace furnishings",
-    naics: ["337211", "423210", "337214"],
-    searchTerms: ["office furniture", "seating", "workstation"],
-    colorClass: "text-purple-400",
-    bgClass: "bg-purple-500/10",
-    borderClass: "border-purple-500/30",
+    description: "Office furniture, seating, and workstation solutions",
+    naicsCodes: ["337211", "337214", "337122", "337127", "442110"],
   },
   {
     id: "safety",
-    name: "Safety & PPE",
+    label: "Safety & PPE",
     emoji: "🦺",
-    description: "Personal protective equipment, safety gear, and compliance products",
-    naics: ["339113", "423450", "339999"],
-    searchTerms: ["safety equipment", "PPE", "protective gear"],
-    colorClass: "text-orange-400",
-    bgClass: "bg-orange-500/10",
-    borderClass: "border-orange-500/30",
+    description: "Personal protective equipment, safety gear, and supplies",
+    naicsCodes: ["339113", "424490", "561621", "448190", "339999"],
   },
   {
     id: "automotive",
-    name: "Automotive Parts",
+    label: "Automotive Parts",
     emoji: "🔧",
-    description: "Vehicle parts, fleet maintenance supplies, and automotive components",
-    naics: ["423120", "441310", "336390"],
-    searchTerms: ["vehicle parts", "automotive", "fleet maintenance"],
-    colorClass: "text-red-400",
-    bgClass: "bg-red-500/10",
-    borderClass: "border-red-500/30",
+    description: "Vehicle parts, accessories, and automotive services",
+    naicsCodes: ["441310", "811111", "811112", "336211", "423120"],
   },
   {
     id: "foodservice",
-    name: "Food Service Equipment",
+    label: "Food Service Equipment",
     emoji: "🍽️",
-    description: "Commercial kitchen equipment, cafeteria supplies, and food service items",
-    naics: ["423440", "333318", "311999"],
-    searchTerms: ["food service", "kitchen equipment", "cafeteria"],
-    colorClass: "text-green-400",
-    bgClass: "bg-green-500/10",
-    borderClass: "border-green-500/30",
+    description: "Commercial kitchen equipment, food service supplies",
+    naicsCodes: ["333318", "423850", "722310", "311812", "311813"],
   },
   {
     id: "medical",
-    name: "Medical Supplies",
+    label: "Medical Supplies",
     emoji: "🏥",
-    description: "Non-clinical medical supplies, equipment, and healthcare products",
-    naics: ["423450", "339112", "424210"],
-    searchTerms: ["medical supplies", "healthcare equipment", "clinical supplies"],
-    colorClass: "text-pink-400",
-    bgClass: "bg-pink-500/10",
-    borderClass: "border-pink-500/30",
+    description: "Medical devices, equipment, and healthcare supplies",
+    naicsCodes: ["339112", "423450", "621610", "325413", "339114"],
   },
 ]
 
-export function getNicheById(id: string): Niche | undefined {
-  return NICHES.find(n => n.id === id)
-}
+export const NICHE_MAP: Record<string, Niche> = Object.fromEntries(
+  NICHES.map((n) => [n.id, n])
+)
