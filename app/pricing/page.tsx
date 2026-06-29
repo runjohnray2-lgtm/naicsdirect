@@ -6,7 +6,7 @@ import PricingCard from "@/components/pricing-card"
 export const metadata = {
   title: "Pricing — NAICS Direct",
   description:
-    "Start with a 14-day free trial. Real SAM.gov data filtered to your exact NAICS code.",
+    "Start with a 3-day free trial. Real SAM.gov data filtered to your exact NAICS code.",
 }
 
 export default async function PricingPage({
@@ -64,7 +64,7 @@ export default async function PricingPage({
             </div>
           )}
           <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-1.5 text-sm text-green-400 mb-6">
-            14-day free trial on all plans
+            3-day free trial on all plans
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
             Simple, Transparent Pricing
@@ -72,7 +72,7 @@ export default async function PricingPage({
           <p className="text-lg text-slate-400 max-w-xl mx-auto">
             Stop scrolling thousands of contracts that have nothing to do with
             your business. Start your free trial — card required, charged after
-            14 days.
+            3 days.
           </p>
         </div>
       </div>
@@ -100,7 +100,7 @@ export default async function PricingPage({
             {
               icon: "card",
               title: "Card Required After Trial",
-              desc: "Enter card now — you won't be charged for 14 days.",
+              desc: "Enter card now — you won't be charged for 3 days.",
             },
             {
               icon: "data",
@@ -128,7 +128,7 @@ export default async function PricingPage({
           {[
             {
               q: "How does the free trial work?",
-              a: "Enter your card and get 14 days free. Cancel before the trial ends and you owe nothing.",
+              a: "Enter your card and get 3 days free. Cancel before the trial ends and you owe nothing.",
             },
             {
               q: "What is a NAICS niche?",
@@ -136,7 +136,7 @@ export default async function PricingPage({
             },
             {
               q: "How often is the data updated?",
-              a: "SAM.gov data is refreshed daily. Pro and Business subscribers get real-time alerts when new solicitations post.",
+              a: "SAM.gov data is refreshed every morning. Pro and Business subscribers get same-day alerts when new solicitations post.",
             },
             {
               q: "Can I change plans?",
