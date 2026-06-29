@@ -2,8 +2,10 @@ import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import Resend from "next-auth/providers/resend"
 import { prisma } from "@/lib/db"
+import { authConfig } from "./auth.config"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
   providers: [
     Resend({
@@ -11,10 +13,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       from: process.env.EMAIL_FROM ?? "NAICS Direct <noreply@naicsdirect.com>",
     }),
   ],
-  pages: {
-    signIn: "/auth/signin",
-    verifyRequest: "/auth/verify",
-  },
   callbacks: {
     session({ session, user }) {
       if (session.user && user) {
