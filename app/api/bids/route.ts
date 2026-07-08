@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { NICHE_MAP } from "@/lib/niches"
+import { isDibbsPosting } from "@/lib/dibbs"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
       uiLink: b.uiLink ?? "",
       naicsCode: b.naicsCode ?? "",
       isActive: b.active,
+      isDibbs: isDibbsPosting(b.agency, b.title),
     }))
 
     return NextResponse.json({ bids, total, page })

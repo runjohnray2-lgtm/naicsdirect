@@ -93,6 +93,11 @@ export function BidCard({ bid }: BidCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <Badge className={cn("text-xs border px-2 py-0.5", typeConfig(bid.typeCode))}>{bid.type}</Badge>
+              {bid.isDibbs && (
+                <Badge className="text-xs border px-2 py-0.5 font-semibold bg-orange-500/20 text-orange-300 border-orange-500/30">
+                  DIBBS
+                </Badge>
+              )}
               <Badge className={cn("text-xs border px-2 py-0.5 font-semibold", urgency.badgeClass)}>
                 {days !== null && days >= 0 && days <= 2 && <AlertCircle className="w-3 h-3 mr-1 inline" />}
                 {urgency.label}
@@ -111,6 +116,9 @@ export function BidCard({ bid }: BidCardProps) {
                 <Calendar className="w-3 h-3 flex-shrink-0" />
                 <span>Due: {formattedDate}</span>
               </div>
+              {bid.isDibbs && (
+                <p className="text-orange-400/80 text-xs">Submit via dibbs.bsm.dla.mil (requires CAGE PIN registration)</p>
+              )}
             </div>
           </div>
           <Button

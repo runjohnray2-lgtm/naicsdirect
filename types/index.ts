@@ -9,6 +9,7 @@ export interface Bid {
   subAgency: string
   publishDate: string
   isActive: boolean
+  isDibbs: boolean
 }
 
 export interface BidApiResponse {
