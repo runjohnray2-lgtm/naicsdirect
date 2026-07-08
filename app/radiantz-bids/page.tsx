@@ -72,7 +72,7 @@ export default async function RadiantzBidsPage() {
             </p>
           </div>
           <Link
-            href="/api/cron/sync-bids"
+            href="/api/sync-now"
             className="text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
           >
             ↻ Sync Now
@@ -90,7 +90,7 @@ export default async function RadiantzBidsPage() {
               from SAM.gov right now.
             </p>
             <Link
-              href="/api/cron/sync-bids"
+              href="/api/sync-now"
               className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
             >
               ↻ Run First Sync Now
