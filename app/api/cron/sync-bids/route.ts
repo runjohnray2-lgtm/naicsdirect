@@ -56,6 +56,7 @@ export async function GET(req: Request) {
               title: opp.title,
               agency: opp.fullParentPathName ?? null,
               naicsCode: opp.naicsCode ?? naicsCode,
+              niche: niche.id,
               postedDate: opp.postedDate ? new Date(opp.postedDate) : null,
               responseDeadline: opp.responseDeadLine
                 ? new Date(opp.responseDeadLine)
