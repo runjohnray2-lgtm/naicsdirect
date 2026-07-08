@@ -29,7 +29,7 @@ export async function fetchOpportunitiesByNaics(
     offset: "0",
     postedFrom,
     postedTo,
-    naicsCode,
+    ncode: naicsCode,
     ptype: "o,k,p",
   })
 
@@ -45,7 +45,11 @@ export async function fetchOpportunitiesByNaics(
     }
 
     const data = await res.json()
-    return (data.opportunitiesData ?? []) as SamOpportunity[]
+    const opportunities = (data.opportunitiesData ?? []) as SamOpportunity[]
+    // Defense-in-depth: SAM's API has previously ignored an unrecognized
+    // filter param and returned unfiltered results. Explicitly verify each
+    // result actually matches the requested NAICS code before accepting it.
+    return opportunities.filter((o) => o.naicsCode === naicsCode)
   } catch (err) {
     console.error(`SAM fetch failed for NAICS ${naicsCode}:`, err)
     return []
