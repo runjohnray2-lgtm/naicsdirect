@@ -10,7 +10,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Resend({
       apiKey: process.env.AUTH_RESEND_KEY,
-      from: process.env.EMAIL_FROM ?? "NAICS Direct <noreply@naicsdirect.com>",
+      // Use `||` (not `??`) so a blank/empty env var still falls back to the default sender.
+      from: process.env.EMAIL_FROM || "NAICS Direct <noreply@naicsdirect.com>",
     }),
   ],
   callbacks: {
