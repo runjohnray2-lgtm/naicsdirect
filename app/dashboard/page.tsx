@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { BidCard } from "@/components/bid-card"
-import { NICHES } from "@/lib/niches"
+import { NICHES, PUBLIC_NICHES } from "@/lib/niches"
 import { Bid } from "@/types"
 import { cn } from "@/lib/utils"
 import { Zap, RefreshCw, AlertCircle, BarChart3, ChevronLeft, X } from "lucide-react"
@@ -117,7 +117,7 @@ function DashboardContent() {
             <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider px-2 py-2">
               Industries
             </p>
-            {NICHES.map(niche => (
+            {PUBLIC_NICHES.map(niche => (
               <button
                 key={niche.id}
                 onClick={() => setActiveNiche(niche.id)}
@@ -148,7 +148,7 @@ function DashboardContent() {
         <main className="flex-1 min-w-0 p-4 sm:p-6">
           {/* Mobile niche tabs */}
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4 lg:hidden scrollbar-hide">
-            {NICHES.map(niche => (
+            {PUBLIC_NICHES.map(niche => (
               <button
                 key={niche.id}
                 onClick={() => setActiveNiche(niche.id)}
