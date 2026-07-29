@@ -1,16 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { NICHES } from "@/lib/niches"
+import { PUBLIC_NICHES, NICHE_MAP } from "@/lib/niches"
 import { cn } from "@/lib/utils"
 import {
   Zap, ArrowRight, Check, Shield, Bell, BarChart3,
-  Search, TrendingUp, Star, ChevronRight
+  Search, TrendingUp, Star, ChevronRight, Radio
 } from "lucide-react"
 
 const PRICING = [
@@ -56,9 +56,42 @@ const COMPARE = [
   { feature: "No Bloat / Simple UI", naics: true, higher: false },
 ]
 
+interface SampleBid {
+  title: string
+  agency: string | null
+  niche: string
+  postedDate: string | null
+  responseDeadline: string | null
+  setAside: string | null
+}
+
+interface PublicStats {
+  totalActiveBids: number
+  sample: SampleBid[]
+  lastSyncedAt: string | null
+}
+
+function timeAgo(iso: string | null) {
+  if (!iso) return "recently"
+  const diffMs = Date.now() - new Date(iso).getTime()
+  const hours = Math.floor(diffMs / (1000 * 60 * 60))
+  if (hours < 1) return "less than an hour ago"
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
 export default function LandingPage() {
   const [email, setEmail] = useState("")
   const [submitted, setSubmitted] = useState(false)
+  const [stats, setStats] = useState<PublicStats | null>(null)
+
+  useEffect(() => {
+    fetch("/api/public-stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .catch(() => {})
+  }, [])
 
   function handleBeta(e: React.FormEvent) {
     e.preventDefault()
@@ -77,6 +110,7 @@ export default function LandingPage() {
             <Badge className="bg-indigo-500/20 text-indigo-400 border-indigo-500/30 text-xs">BETA</Badge>
           </div>
           <nav className="hidden md:flex items-center gap-6">
+            <a href="#live" className="text-slate-400 hover:text-white text-sm transition-colors">Live Bids</a>
             <a href="#niches" className="text-slate-400 hover:text-white text-sm transition-colors">Niches</a>
             <a href="#pricing" className="text-slate-400 hover:text-white text-sm transition-colors">Pricing</a>
             <Link href="/dashboard" className="text-slate-400 hover:text-white text-sm transition-colors">Live Demo</Link>
@@ -105,14 +139,27 @@ export default function LandingPage() {
               Filtered For Your Industry
             </span>
           </h1>
-          <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10">
+          <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-6">
             Stop paying $500/month for bids you&apos;ll never win. NAICS Direct shows you only the federal contracts in your exact niche — real SAM.gov data, updated daily.
           </p>
+
+          {/* Live proof, not just a claim */}
+          <div className="inline-flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-10 px-5 py-3 rounded-full bg-slate-900/80 border border-slate-800 text-sm">
+            <span className="flex items-center gap-2 text-white font-semibold">
+              <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+              {stats ? stats.totalActiveBids.toLocaleString() : "…"} live open opportunities
+            </span>
+            <span className="text-slate-600 hidden sm:inline">•</span>
+            <span className="text-slate-400">across 8 industries</span>
+            <span className="text-slate-600 hidden sm:inline">•</span>
+            <span className="text-slate-400">last synced {stats ? timeAgo(stats.lastSyncedAt) : "…"}</span>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 gap-2" asChild>
-              <Link href="/dashboard">
-                See Live Demo <ArrowRight className="w-4 h-4" />
-              </Link>
+              <a href="#live">
+                See Live Bids Now <ArrowRight className="w-4 h-4" />
+              </a>
             </Button>
             <Button size="lg" variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white px-8" asChild>
               <a href="#beta">Get Beta Access</a>
@@ -123,6 +170,46 @@ export default function LandingPage() {
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" /> No contract needed</span>
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" /> Cancel anytime</span>
           </div>
+        </div>
+      </section>
+
+      {/* Free sample preview — no signup wall, proves the filtering actually works */}
+      <section id="live" className="py-16 border-t border-slate-800/60">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">See Real Bids, Right Now — No Signup</h2>
+            <p className="text-slate-400">A live sample straight from today&apos;s SAM.gov sync. This is exactly what you&apos;d see in your dashboard.</p>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-800">
+            {stats && stats.sample.length > 0 ? (
+              stats.sample.map((bid, i) => {
+                const niche = NICHE_MAP[bid.niche]
+                return (
+                  <div key={i} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-medium truncate">{bid.title}</p>
+                      <p className="text-slate-500 text-xs mt-0.5">{bid.agency ?? "Federal Agency"}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {niche && (
+                        <Badge className={cn("text-xs border", niche.colorClass, niche.borderClass, niche.bgClass)}>
+                          {niche.emoji} {niche.name}
+                        </Badge>
+                      )}
+                      {bid.setAside && (
+                        <Badge className="bg-slate-800 text-slate-300 border-slate-700 text-xs">{bid.setAside}</Badge>
+                      )}
+                    </div>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="p-8 text-center text-slate-500 text-sm">Loading live bids…</div>
+            )}
+          </div>
+          <p className="text-center text-slate-500 text-xs mt-4">
+            Showing 5 of {stats ? stats.totalActiveBids.toLocaleString() : "…"} active opportunities. Sign up to filter by your exact niche and get deadline alerts.
+          </p>
         </div>
       </section>
 
@@ -188,7 +275,7 @@ export default function LandingPage() {
             <p className="text-slate-400">Each niche pulls live bids from SAM.gov filtered to your exact industry codes.</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {NICHES.map(niche => (
+            {PUBLIC_NICHES.map(niche => (
               <Link key={niche.id} href={`/dashboard?niche=${niche.id}`}>
                 <Card className={cn(
                   "bg-slate-900 border hover:scale-[1.02] transition-all duration-200 cursor-pointer group h-full",
@@ -212,7 +299,7 @@ export default function LandingPage() {
       <section id="pricing" className="py-16 border-t border-slate-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10">
-            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 mb-4">Beta Pricing — 50% Off</Badge>
+            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 mb-4">Beta Pricing — 50% Off, Locked In Forever</Badge>
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Simple, Honest Pricing</h2>
             <p className="text-slate-400">Beta members lock in this price forever. No annual contracts, cancel anytime.</p>
           </div>
@@ -241,7 +328,7 @@ export default function LandingPage() {
                     </div>
                     <div className="flex items-center gap-1.5 mt-1">
                       <span className="text-slate-600 line-through text-sm">${plan.price}/mo</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs">50% off</Badge>
+                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs">50% off, forever</Badge>
                     </div>
                   </div>
                   <ul className="space-y-2.5 mb-6">
