@@ -7,6 +7,9 @@ import { authConfig } from "./auth.config"
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
+  // JWT sessions so the Edge middleware (no DB access there) can verify
+  // login state straight from the cookie instead of needing a DB round trip.
+  session: { strategy: "jwt" },
   providers: [
     Resend({
       apiKey: process.env.AUTH_RESEND_KEY,
@@ -15,9 +18,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    session({ session, user }) {
-      if (session.user && user) {
-        session.user.id = user.id
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+      }
+      return token
+    },
+    session({ session, token }) {
+      if (session.user && token?.id) {
+        session.user.id = token.id as string
       }
       return session
     },
