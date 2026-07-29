@@ -1,5 +1,5 @@
 import { MetadataRoute } from "next"
-import { NICHES } from "@/lib/niches"
+import { PUBLIC_NICHES } from "@/lib/niches"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://naicsdirect.com"
@@ -20,7 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
-  const nicheRoutes: MetadataRoute.Sitemap = NICHES.map((n) => ({
+  const nicheRoutes: MetadataRoute.Sitemap = PUBLIC_NICHES.map((n) => ({
     url: `${base}/${n.id}`,
     lastModified: now,
     changeFrequency: "weekly" as const,

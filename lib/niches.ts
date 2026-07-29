@@ -7,6 +7,10 @@ export interface Niche {
   bgClass: string
   colorClass: string
   borderClass: string
+  /** Set to false to keep a niche fully functional (sync, dashboard, direct link)
+   *  but hidden from the public marketing homepage grid. Used for internal /
+   *  example watchlists like Radiantz that shouldn't confuse prospective customers. */
+  public?: boolean
 }
 
 export const NICHES: Niche[] = [
@@ -121,9 +125,13 @@ export const NICHES: Niche[] = [
     bgClass: "bg-yellow-900/30",
     colorClass: "text-yellow-400",
     borderClass: "border-yellow-800",
+    public: false,
   },
 ]
 
 export const NICHE_MAP: Record<string, Niche> = Object.fromEntries(
   NICHES.map((n) => [n.id, n])
 )
+
+/** Niches to show on the public marketing homepage / niche picker. */
+export const PUBLIC_NICHES: Niche[] = NICHES.filter((n) => n.public !== false)
