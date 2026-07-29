@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
-import { NICHES, NICHE_MAP } from "@/lib/niches"
+import { NICHES, PUBLIC_NICHES, NICHE_MAP } from "@/lib/niches"
 
 export const dynamic = "force-dynamic"
 
@@ -101,7 +101,7 @@ export default async function BidsPage({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Niche Tabs */}
         <div className="flex gap-2 flex-wrap mb-6">
-          {NICHES.map((niche) => (
+          {PUBLIC_NICHES.map((niche) => (
             <Link
               key={niche.id}
               href={`/dashboard/bids?niche=${niche.id}`}

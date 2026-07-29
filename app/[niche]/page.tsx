@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import type { Metadata } from "next"
-import { NICHES } from "@/lib/niches"
+import { NICHES, PUBLIC_NICHES } from "@/lib/niches"
 import { NICHE_SEO } from "@/lib/niche-seo"
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  return NICHES.map((n) => ({ niche: n.id }))
+  return PUBLIC_NICHES.map((n) => ({ niche: n.id }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -213,7 +213,7 @@ export default async function NicheLandingPage({ params }: Props) {
               © 2025 NAICS Direct · All federal bid data sourced from SAM.gov
             </div>
             <div className="flex gap-6 text-sm text-slate-500">
-              {NICHES.filter((n) => n.id !== niche).slice(0, 5).map((n) => (
+              {PUBLIC_NICHES.filter((n) => n.id !== niche).slice(0, 5).map((n) => (
                 <Link key={n.id} href={`/${n.id}`} className="hover:text-slate-300 transition-colors">
                   {n.name}
                 </Link>
