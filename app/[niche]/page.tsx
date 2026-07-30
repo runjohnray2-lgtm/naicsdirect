@@ -3,6 +3,9 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { NICHES, PUBLIC_NICHES } from "@/lib/niches"
 import { NICHE_SEO } from "@/lib/niche-seo"
+import { prisma } from "@/lib/db"
+
+export const revalidate = 3600 // refresh dateModified hourly, not on every request
 
 interface Props {
   params: Promise<{ niche: string }>
@@ -47,6 +50,21 @@ export default async function NicheLandingPage({ params }: Props) {
 
   const pageUrl = `https://naicsdirect.com/${niche}`
 
+  // Real freshness signal (not fabricated) — reflects the actual last time
+  // this niche's bids were synced from SAM.gov, so Google and AI answer
+  // engines can see the "daily-synced data" claim is genuinely current.
+  let dateModified: string | undefined
+  try {
+    const lastSynced = await prisma.bid.findFirst({
+      where: { niche: nicheData.id },
+      orderBy: { updatedAt: "desc" },
+      select: { updatedAt: true },
+    })
+    dateModified = lastSynced?.updatedAt?.toISOString()
+  } catch {
+    dateModified = undefined
+  }
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -56,6 +74,7 @@ export default async function NicheLandingPage({ params }: Props) {
         name: seo.h1,
         description: seo.metaDescription,
         url: pageUrl,
+        ...(dateModified ? { dateModified } : {}),
         isPartOf: { "@id": "https://naicsdirect.com/#website" },
         publisher: { "@id": "https://naicsdirect.com/#organization" },
       },
