@@ -1,15 +1,18 @@
 "use client"
 
+import Link from "next/link"
 import { Bid } from "@/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, Building, ExternalLink, AlertCircle } from "lucide-react"
+import { Calendar, Building, ExternalLink, AlertCircle, Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { differenceInDays, parseISO } from "date-fns"
 
 interface BidCardProps {
   bid: Bid
+  /** True when this bid's details should be teased/blurred behind a signup wall. */
+  locked?: boolean
 }
 
 function getDaysUntil(dateStr: string): number | null {
@@ -66,10 +69,11 @@ function typeConfig(code: string) {
   return map[code] || "bg-slate-500/20 text-slate-300 border-slate-500/30"
 }
 
-export function BidCard({ bid }: BidCardProps) {
+export function BidCard({ bid, locked = false }: BidCardProps) {
   const days = getDaysUntil(bid.responseDate)
   const urgency = urgencyConfig(days)
   const samUrl = `https://sam.gov/opp/${bid.id}/view`
+  const isLockedDibbs = locked && bid.isDibbs
 
   let formattedDate = "No deadline listed"
   try {
@@ -83,10 +87,11 @@ export function BidCard({ bid }: BidCardProps) {
   return (
     <Card
       className={cn(
-        "bg-slate-900 border-slate-800 hover:border-slate-600 transition-all duration-200 group cursor-pointer border-l-4",
-        urgency.cardBorderClass
+        "bg-slate-900 border-slate-800 transition-all duration-200 border-l-4",
+        urgency.cardBorderClass,
+        !isLockedDibbs && "hover:border-slate-600 group cursor-pointer"
       )}
-      onClick={() => window.open(samUrl, "_blank")}
+      onClick={() => { if (!isLockedDibbs) window.open(samUrl, "_blank") }}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
@@ -100,35 +105,86 @@ export function BidCard({ bid }: BidCardProps) {
               )}
               <Badge className={cn("text-xs border px-2 py-0.5 font-semibold", urgency.badgeClass)}>
                 {days !== null && days >= 0 && days <= 2 && <AlertCircle className="w-3 h-3 mr-1 inline" />}
-                {urgency.label}
+                {isLockedDibbs ? "Urgency locked" : urgency.label}
               </Badge>
             </div>
-            <h3 className="text-white font-medium text-sm leading-snug mb-2 line-clamp-2 group-hover:text-indigo-300 transition-colors">{bid.title}</h3>
-            <div className="space-y-1">
-              {bid.solicitationNumber && (
-                <p className="text-slate-500 text-xs font-mono tracking-tight">Sol# {bid.solicitationNumber}</p>
-              )}
-              <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                <Building className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">{bid.subAgency || bid.agency}</span>
+
+            <h3 className={cn(
+              "text-white font-medium text-sm leading-snug mb-2 line-clamp-2 transition-colors",
+              !isLockedDibbs && "group-hover:text-indigo-300"
+            )}>
+              {bid.title}
+            </h3>
+
+            {isLockedDibbs ? (
+              <div className="space-y-1.5">
+                <p className="text-slate-600 text-xs font-mono blur-[3px] select-none">Sol# ████-██-█-████</p>
+                <div className="flex items-center gap-1.5 text-slate-600 text-xs blur-[3px] select-none">
+                  <Building className="w-3 h-3 flex-shrink-0" />
+                  <span>██████ ███████ █████</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-600 text-xs blur-[3px] select-none">
+                  <Calendar className="w-3 h-3 flex-shrink-0" />
+                  <span>Due: ██████ ██, ████</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                <Calendar className="w-3 h-3 flex-shrink-0" />
-                <span>Due: {formattedDate}</span>
+            ) : (
+              <div className="space-y-1">
+                {bid.solicitationNumber && (
+                  <p className="text-slate-500 text-xs font-mono tracking-tight">Sol# {bid.solicitationNumber}</p>
+                )}
+                <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+                  <Building className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{bid.subAgency || bid.agency}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+                  <Calendar className="w-3 h-3 flex-shrink-0" />
+                  <span>Due: {formattedDate}</span>
+                </div>
               </div>
-              {bid.isDibbs && (
-                <p className="text-orange-400/80 text-xs">Submit via dibbs.bsm.dla.mil (requires CAGE PIN registration)</p>
-              )}
-            </div>
+            )}
+
+            {isLockedDibbs ? (
+              <div className="mt-2.5 flex flex-wrap items-center gap-2" onClick={e => e.stopPropagation()}>
+                <Button
+                  size="sm"
+                  className="h-7 text-xs bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border border-orange-500/30 gap-1.5"
+                  asChild
+                >
+                  <Link href="/auth/signin">
+                    <Lock className="w-3 h-3" /> Unlock DIBBS Details — Free
+                  </Link>
+                </Button>
+              </div>
+            ) : (
+              bid.isDibbs && (
+                <p className="text-orange-400/80 text-xs mt-1.5">
+                  Submit via dibbs.bsm.dla.mil (requires{" "}
+                  <a
+                    href="https://www.dibbs.bsm.dla.mil/Registration/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-orange-300"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    free CAGE PIN registration
+                  </a>
+                  )
+                </p>
+              )
+            )}
           </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-slate-600 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 flex-shrink-0 p-1.5 h-auto"
-            onClick={e => { e.stopPropagation(); window.open(samUrl, "_blank") }}
-          >
-            <ExternalLink className="w-4 h-4" />
-          </Button>
+
+          {!isLockedDibbs && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-slate-600 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 flex-shrink-0 p-1.5 h-auto"
+              onClick={e => { e.stopPropagation(); window.open(samUrl, "_blank") }}
+            >
+              <ExternalLink className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
