@@ -185,7 +185,7 @@ export default async function NicheLandingPage({ params }: Props) {
                 href="/#pricing"
                 className="inline-flex items-center justify-center border border-slate-600 hover:border-slate-400 text-slate-300 font-semibold px-8 py-3 rounded-xl transition-colors"
               >
-                Get Email Alerts — $14/mo
+                Unlock More Niches — $14/mo
               </Link>
             </div>
           </div>
@@ -210,7 +210,7 @@ export default async function NicheLandingPage({ params }: Props) {
         <footer className="border-t border-slate-800 px-6 py-8">
           <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-slate-500 text-sm">
-              © 2025 NAICS Direct · All federal bid data sourced from SAM.gov
+              © 2026 NAICS Direct · All federal bid data sourced from SAM.gov
             </div>
             <div className="flex gap-6 text-sm text-slate-500">
               {PUBLIC_NICHES.filter((n) => n.id !== niche).slice(0, 5).map((n) => (

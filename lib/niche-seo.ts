@@ -29,10 +29,10 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
     ],
     benefits: [
       "See only flooring-relevant bids — no noise from unrelated industries",
-      "Real-time deadlines with urgency alerts so you never miss a closing date",
+      "Color-coded urgency flags on your dashboard so you never miss a closing date",
       "Filter by agency: VA, Army Corps, GSA, DoD, and more",
       "One-click access to the full solicitation on SAM.gov",
-      "Email alerts when new flooring bids post (Pro/Elite plans)",
+      "Urgency filtering by closing window (2 days, this week, or open)",
     ],
     faqs: [
       {
@@ -41,7 +41,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
       },
       {
         q: "How do I find government flooring contracts on SAM.gov?",
-        a: "Go to SAM.gov, search 'flooring', and filter by NAICS 238330. Or use NAICS Direct — we do that filtering automatically and show only open, active bids with real-time deadlines.",
+        a: "Go to SAM.gov, search 'flooring', and filter by NAICS 238330. Or use NAICS Direct — we do that filtering automatically and show only open, active bids with daily-synced deadlines.",
       },
       {
         q: "Are small businesses competitive for federal flooring contracts?",
@@ -53,7 +53,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
       },
       {
         q: "Is NAICS Direct free to use?",
-        a: "Yes — the free tier lets you browse all active flooring bids. Pro ($14/month) and Elite ($29/month) plans add real-time email alerts and saved searches.",
+        a: "Yes — anyone can browse all active flooring bids free, no signup. Paid plans start at $14/month and add more NAICS niches plus priority support.",
       },
     ],
     keywords: [
@@ -85,9 +85,9 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
     benefits: [
       "Recurring contract opportunities — many janitor bids are multi-year base + option years",
       "Filter by set-aside type (small business, 8(a), WOSB, SDVOSB)",
-      "Real-time deadline tracking so you never miss a closing date",
+      "Color-coded urgency flags on your dashboard so you never miss a closing date",
       "Covers both service contracts and supply procurement",
-      "Email alerts when new janitorial bids post (Pro/Elite plans)",
+      "Urgency filtering by closing window (2 days, this week, or open)",
     ],
     faqs: [
       {
@@ -108,7 +108,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
       },
       {
         q: "Is NAICS Direct free to use?",
-        a: "Yes — free tier lets you browse all active janitorial bids. Paid plans ($14-$49/month) add email alerts and expanded features.",
+        a: "Yes — anyone can browse all active janitorial bids free, no signup. Paid plans ($14–$49/month) add more NAICS niches and priority support.",
       },
     ],
     keywords: [
@@ -141,7 +141,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
       "Multi-year maintenance contracts for stable recurring revenue",
       "Covers installation, repair, and equipment supply solicitations",
       "Filter by agency, location, and set-aside type",
-      "Email alerts when new HVAC bids post (Pro/Elite plans)",
+      "Urgency filtering by closing window (2 days, this week, or open)",
     ],
     faqs: [
       {
@@ -190,8 +190,8 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
       "Access to GSA Schedule furniture orders and open market bids",
       "Covers both new furniture procurement and refurbishment contracts",
       "Filter by agency, dollar value, and set-aside type",
-      "Real-time closing deadline alerts",
-      "Email notifications for new furniture solicitations (Pro/Elite)",
+      "Color-coded closing-deadline flags on your dashboard",
+      "Urgency filtering by closing window (2 days, this week, or open)",
     ],
     faqs: [
       {
@@ -234,9 +234,9 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
     benefits: [
       "Covers PPE, fall protection, fire safety, and industrial safety equipment",
       "TAA-compliant product filtering guidance (required for DoD/State Dept contracts)",
-      "Real-time deadline tracking and urgency alerts",
+      "Urgency filtering by closing window (2 days, this week, or open)",
       "Filter by set-aside type for small business advantages",
-      "Email alerts for new safety bids (Pro/Elite plans)",
+      "One-click access to the full solicitation on SAM.gov",
     ],
     faqs: [
       {
@@ -280,8 +280,8 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
       "Access to DoD, USPS, GSA fleet, and civilian agency vehicle contracts",
       "Parts, accessories, tires, and maintenance supply solicitations",
       "Covers NSN (National Stock Number) supply contracts",
-      "Real-time deadline tracking and urgency alerts",
-      "Email alerts for new automotive bids (Pro/Elite plans)",
+      "Urgency filtering by closing window (2 days, this week, or open)",
+      "One-click access to the full solicitation on SAM.gov",
     ],
     faqs: [
       {
@@ -321,8 +321,8 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
       "Military dining facility (DFAC) and VA cafeteria equipment contracts",
       "Covers equipment, smallwares, and supply solicitations",
       "Filter by agency: DoD, VA, BOP (Bureau of Prisons), USDA",
-      "Real-time closing deadline alerts",
-      "Email notifications for new food service bids (Pro/Elite)",
+      "Color-coded closing-deadline flags on your dashboard",
+      "Urgency filtering by closing window (2 days, this week, or open)",
     ],
     faqs: [
       {
@@ -362,8 +362,8 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
       "VA, DoD, IHS, and BOP medical supply contracts",
       "Covers equipment, disposables, and pharmaceutical supply solicitations",
       "TAA-compliance filter guidance for DoD contracts",
-      "Real-time deadline tracking and urgency alerts",
-      "Email alerts for new medical supply bids (Pro/Elite plans)",
+      "Urgency filtering by closing window (2 days, this week, or open)",
+      "One-click access to the full solicitation on SAM.gov",
     ],
     faqs: [
       {

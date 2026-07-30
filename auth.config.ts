@@ -16,7 +16,8 @@ export const authConfig = {
       // Only the account page and the deeper server-rendered bids view require login.
       const isProtectedRoute =
         nextUrl.pathname.startsWith("/dashboard/bids") ||
-        nextUrl.pathname.startsWith("/account")
+        nextUrl.pathname.startsWith("/account") ||
+        nextUrl.pathname.startsWith("/radiantz-bids")
       if (isProtectedRoute && !isLoggedIn) return false
       return true
     },
