@@ -207,15 +207,15 @@ export default function LandingPage() {
             <span className="text-slate-400">last synced {stats ? timeAgo(stats.lastSyncedAt) : "…"}</span>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button size="lg" className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 gap-2" asChild>
               <a href="#live">
-                See Live Bids Now <ArrowRight className="w-4 h-4" />
+                Browse Live Bids Free <ArrowRight className="w-4 h-4" />
               </a>
             </Button>
-            <Button size="lg" variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white px-8" asChild>
-              <a href="#beta">Get Beta Access</a>
-            </Button>
+            <a href="#pricing" className="text-slate-400 hover:text-white text-sm font-medium underline underline-offset-4 decoration-slate-700 hover:decoration-slate-400 transition-colors">
+              View pricing
+            </a>
           </div>
           <div className="flex flex-wrap justify-center gap-6 mt-10 text-sm text-slate-500">
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" /> Real SAM.gov data</span>
@@ -333,7 +333,8 @@ export default function LandingPage() {
           </div>
           <div className="max-w-2xl mx-auto">
             <h3 className="text-center text-white font-semibold mb-4 text-lg">NAICS Direct vs. Other Platforms</h3>
-            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-x-auto">
+              <div className="min-w-[480px]">
               <div className="grid grid-cols-3 text-xs font-semibold text-slate-400 uppercase tracking-wider bg-slate-800/60 px-4 py-3">
                 <span>Feature</span>
                 <span className="text-center text-indigo-400">NAICS Direct</span>
@@ -358,6 +359,7 @@ export default function LandingPage() {
                   </span>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         </div>
