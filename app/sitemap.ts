@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next"
 import { PUBLIC_NICHES } from "@/lib/niches"
+import { BLOG_POSTS } from "@/lib/blog-posts"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://naicsdirect.com"
@@ -51,5 +52,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }))
 
-  return [...staticRoutes, ...nicheRoutes]
+  const blogRoutes: MetadataRoute.Sitemap = [
+    {
+      url: `${base}/blog`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    },
+    ...BLOG_POSTS.map((p) => ({
+      url: `${base}/blog/${p.slug}`,
+      lastModified: new Date(p.publishedDate),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+  ]
+
+  return [...staticRoutes, ...nicheRoutes, ...blogRoutes]
 }
