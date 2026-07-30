@@ -176,7 +176,7 @@ export default function LandingPage() {
           </nav>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white hidden sm:flex" asChild>
-              <Link href="/dashboard">Log In</Link>
+              <Link href="/auth/signin">Log In</Link>
             </Button>
             <Button size="sm" className="bg-indigo-600 hover:bg-indigo-500" asChild>
               <a href="#beta">Get Beta Access</a>
@@ -521,6 +521,7 @@ export default function LandingPage() {
               <div className="w-6 h-6 bg-indigo-600 rounded flex items-center justify-center">
                 <Zap className="w-3 h-3 text-white" />
               </div>
+              <span className="text-lg font-bold text-white">NAICS Direct</span>
               <span className="text-slate-400 text-sm">NAICS Direct — Federal Bid Intelligence for Small Businesses</span>
             </div>
             <div className="flex items-center gap-4 text-xs text-slate-500">
