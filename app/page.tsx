@@ -20,7 +20,7 @@ const PRICING = [
     price: 29,
     betaPrice: 14,
     description: "Perfect for single-industry contractors",
-    features: ["1 niche category", "Live SAM.gov feed", "Deadline alerts", "Historical pricing", "Email support"],
+    features: ["1 niche category", "Live SAM.gov feed", "Deadline alerts", "DIBBS bid unlock", "Email support"],
     cta: "Start Free Trial",
     stripeUrl: "https://buy.stripe.com/6oUaEYc2X6Ni1l04cl18c00",
     highlighted: false,
@@ -30,7 +30,7 @@ const PRICING = [
     price: 59,
     betaPrice: 29,
     description: "For contractors working multiple categories",
-    features: ["3 niche categories", "Live SAM.gov feed", "Deadline alerts", "Historical pricing", "Email alerts for new bids", "Priority support"],
+    features: ["3 niche categories", "Live SAM.gov feed", "Deadline alerts", "DIBBS bid unlock", "Email alerts for new bids", "Priority support"],
     cta: "Start Free Trial",
     stripeUrl: "https://buy.stripe.com/28E7sM2sn5Je2p46kt18c01",
     highlighted: true,
@@ -40,7 +40,7 @@ const PRICING = [
     price: 99,
     betaPrice: 49,
     description: "For distributors and multi-niche resellers",
-    features: ["All 8 niches", "Live SAM.gov feed", "Deadline alerts", "Historical pricing", "Instant email alerts", "Team access", "Dedicated support"],
+    features: ["All 8 niches", "Live SAM.gov feed", "Deadline alerts", "DIBBS bid unlock", "Instant email alerts", "Team access", "Dedicated support"],
     cta: "Start Free Trial",
     stripeUrl: "https://buy.stripe.com/eVqcN60kf5Jee7MdMV18c02",
     highlighted: false,
@@ -50,7 +50,7 @@ const PRICING = [
 const COMPARE = [
   { feature: "Live SAM.gov Data", naics: true, higher: true },
   { feature: "Industry-Specific Filtering", naics: true, higher: false },
-  { feature: "Historical Pricing", naics: true, higher: true },
+  { feature: "DIBBS Detail Unlock (Free)", naics: true, higher: false },
   { feature: "Small Business Focus", naics: true, higher: false },
   { feature: "Starting Price", naics: "$14/mo", higher: "$150/mo" },
   { feature: "Niche Email Alerts", naics: true, higher: true },
@@ -71,7 +71,7 @@ const HOW_IT_WORKS = [
   {
     step: "3",
     title: "Act before the deadline",
-    desc: "Color-coded urgency flags, historical pricing, and optional email alerts mean you find out the moment a real opportunity posts — and you know what to bid.",
+    desc: "Color-coded urgency flags and optional email alerts mean you find out the moment a real opportunity posts — and you know exactly what to bid.",
   },
 ]
 
@@ -286,7 +286,7 @@ export default function LandingPage() {
                       <p className="text-slate-500 text-xs mt-0.5">{bid.agency ?? "Federal Agency"}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {niche && (
+                      {niche &&(
                         <Badge className={cn("text-xs border", niche.colorClass, niche.borderClass, niche.bgClass)}>
                           {niche.emoji} {niche.name}
                         </Badge>
@@ -318,7 +318,7 @@ export default function LandingPage() {
             {[
               { icon: Search, title: "Your Industry Only", desc: "Choose your niche and see only bids relevant to what you actually sell. No noise, no irrelevant contracts." },
               { icon: Bell, title: "Instant Deadline Alerts", desc: "Color-coded urgency flags and email alerts so you never miss a bid closing in the next 3–7 days." },
-              { icon: BarChart3, title: "Historical Pricing", desc: "See what the government paid last time so you can price competitively and actually win." },
+              { icon: BarChart3, title: "DIBBS Bid Unlock", desc: "DIBBS listings show up flagged and fuzzed out. Create a free account to reveal the solicitation number, agency, and deadline instantly." },
             ].map(({ icon: Icon, title, desc }) => (
               <Card key={title} className="bg-slate-900/60 border-slate-800">
                 <CardContent className="p-6">
@@ -467,7 +467,7 @@ export default function LandingPage() {
                         <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                         {f}
                       </li>
-                    ))}
+                  ))}
                   </ul>
                   <Button className={cn("w-full font-semibold", plan.highlighted ? "bg-indigo-600 hover:bg-indigo-500 text-white" : "bg-slate-800 hover:bg-slate-700 text-white border border-slate-700")}
                     variant="default"
