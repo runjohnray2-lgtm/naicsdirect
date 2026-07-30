@@ -47,7 +47,6 @@ const COMPARE = [
   { feature: "DIBBS Detail Unlock (Free)", naics: true, higher: false },
   { feature: "Small Business Focus", naics: true, higher: false },
   { feature: "Starting Price", naics: "$14/mo", higher: "$150/mo" },
-  { feature: "Niche Email Alerts", naics: true, higher: true },
   { feature: "No Bloat / Simple UI", naics: true, higher: false },
 ]
 
@@ -65,7 +64,7 @@ const HOW_IT_WORKS = [
   {
     step: "3",
     title: "Act before the deadline",
-    desc: "Color-coded urgency flags and optional email alerts mean you find out the moment a real opportunity posts — and you know exactly what to bid.",
+    desc: "Color-coded urgency flags mean you find out the moment a real opportunity posts — and you know exactly what to bid.",
   },
 ]
 
@@ -112,9 +111,23 @@ export default function LandingPage() {
       .catch(() => {})
   }, [])
 
-  function handleBeta(e: React.FormEvent) {
+  async function handleBeta(e: React.FormEvent) {
     e.preventDefault()
-    if (email) setSubmitted(true)
+    if (!email) return
+    setSubmitted(true)
+    try {
+      await fetch("https://formsubmit.co/ajax/ray@radiantz.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          email,
+          _subject: "NAICS Direct: New beta waitlist signup",
+          _template: "table",
+        }),
+      })
+    } catch {
+      // Non-blocking — user already sees confirmation; a failed notification isn't their problem.
+    }
   }
 
   async function handleNicheRequest(e: React.FormEvent) {
@@ -297,7 +310,7 @@ export default function LandingPage() {
             )}
           </div>
           <p className="text-center text-slate-500 text-xs mt-4">
-            Showing 5 of {stats ? stats.totalActiveBids.toLocaleString() : "…"} active opportunities. Sign up to filter by your exact niche and get deadline alerts.
+            Showing 5 of {stats ? stats.totalActiveBids.toLocaleString() : "…"} active opportunities. Sign up to filter by your exact niche and see urgency status on every bid.
           </p>
         </div>
       </section>
@@ -311,7 +324,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             {[
               { icon: Search, title: "Your Industry Only", desc: "Choose your niche and see only bids relevant to what you actually sell. No noise, no irrelevant contracts." },
-              { icon: Bell, title: "Instant Deadline Alerts", desc: "Color-coded urgency flags and email alerts so you never miss a bid closing in the next 3–7 days." },
+              { icon: Bell, title: "Instant Deadline Alerts", desc: "Color-coded urgency flags on your dashboard so you never miss a bid closing in the next 3–7 days." },
               { icon: BarChart3, title: "DIBBS Bid Unlock", desc: "DIBBS listings show up flagged and fuzzed out. Create a free account to reveal the solicitation number, agency, and deadline instantly." },
             ].map(({ icon: Icon, title, desc }) => (
               <Card key={title} className="bg-slate-900/60 border-slate-800">
