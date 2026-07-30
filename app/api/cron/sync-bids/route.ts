@@ -106,10 +106,33 @@ export async function GET(req: Request) {
     data: { active: false },
   })
 
+  // Self-heal mismatched leftovers: bids whose stored naicsCode doesn't
+  // actually belong to the niche they're tagged under (e.g. synced during
+  // a past window where SAM's ncode filter was ignored, or a niche's
+  // naicsCodes list changed after the bid was written). Runs every sync so
+  // this never again depends on someone remembering to hit a one-off
+  // maintenance route by hand.
+  let totalMismatchedDeactivated = 0
+  const mismatchSummary: Record<string, number> = {}
+  for (const niche of NICHES) {
+    const result = await prisma.bid.updateMany({
+      where: {
+        niche: niche.id,
+        active: true,
+        naicsCode: { notIn: niche.naicsCodes },
+      },
+      data: { active: false },
+    })
+    if (result.count > 0) mismatchSummary[niche.id] = result.count
+    totalMismatchedDeactivated += result.count
+  }
+
   return NextResponse.json({
     success: true,
     totalSynced,
     totalErrors,
+    totalMismatchedDeactivated,
+    mismatchSummary,
     range: { from: postedFrom, to: postedTo },
     summary,
     syncedAt: new Date().toISOString(),
