@@ -27,6 +27,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: "NAICS Direct",
       type: "website",
     },
+    twitter: {
+      card: "summary_large_image",
+      title: seo.h1,
+      description: seo.metaDescription,
+    },
     alternates: {
       canonical: `https://naicsdirect.com/${niche}`,
     },
@@ -40,17 +45,49 @@ export default async function NicheLandingPage({ params }: Props) {
 
   if (!nicheData || !seo) notFound()
 
+  const pageUrl = `https://naicsdirect.com/${niche}`
+
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "WebPage",
-    name: seo.h1,
-    description: seo.metaDescription,
-    url: `https://naicsdirect.com/${niche}`,
-    publisher: {
-      "@type": "Organization",
-      name: "NAICS Direct",
-      url: "https://naicsdirect.com",
-    },
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${pageUrl}/#webpage`,
+        name: seo.h1,
+        description: seo.metaDescription,
+        url: pageUrl,
+        isPartOf: { "@id": "https://naicsdirect.com/#website" },
+        publisher: { "@id": "https://naicsdirect.com/#organization" },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: "https://naicsdirect.com",
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: nicheData.name,
+            item: pageUrl,
+          },
+        ],
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: seo.faqs.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: a,
+          },
+        })),
+      },
+    ],
   }
 
   return (
@@ -81,8 +118,25 @@ export default async function NicheLandingPage({ params }: Props) {
           </div>
         </nav>
 
+        {/* Breadcrumb (visible, matches BreadcrumbList JSON-LD above) */}
+        <div className="max-w-5xl mx-auto px-6 pt-6">
+          <nav aria-label="Breadcrumb" className="text-sm text-slate-500">
+            <ol className="flex items-center gap-2">
+              <li>
+                <Link href="/" className="hover:text-slate-300 transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden="true">/</li>
+              <li className="text-slate-300" aria-current="page">
+                {nicheData.name}
+              </li>
+            </ol>
+          </nav>
+        </div>
+
         {/* Hero */}
-        <section className="max-w-5xl mx-auto px-6 py-16">
+        <section className="max-w-5xl mx-auto px-6 pt-10 pb-16">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-4xl">{nicheData.emoji}</span>
             <span
