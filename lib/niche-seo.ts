@@ -261,85 +261,167 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
     ],
   },
 
-  automotive: {
-    slug: "automotive",
-    title: "Federal Automotive Parts Contracts | NAICS 423120 Bid Opportunities | NAICS Direct",
+  electrical: {
+    slug: "electrical",
+    title: "Federal Electrical Contractor Contracts | NAICS 238210 Bid Opportunities | NAICS Direct",
     metaDescription:
-      "Find active federal automotive and fleet parts contracts. NAICS Direct filters SAM.gov bids by NAICS 423120, 441310, 336390 for auto parts suppliers and fleet maintenance companies.",
-    h1: "Federal Automotive & Fleet Parts Contracts",
+      "Find active federal electrical contracting and equipment contracts on SAM.gov. NAICS Direct filters bids by NAICS 238210, 238290, 335313, 335999 for electrical contractors and equipment suppliers. Free to browse.",
+    h1: "Federal Electrical Contractor Contracts",
     subtitle:
-      "Government bids for vehicle parts, fleet maintenance supplies, and automotive components",
+      "NAICS-filtered government bids for electrical wiring installation, switchgear, and lighting-adjacent equipment contractors",
     intro:
-      "The federal government operates one of the largest vehicle fleets in the world — from USPS mail trucks to military Humvees to GSA motor pool sedans. Keeping those fleets running requires a constant supply of parts, maintenance supplies, and replacement components. NAICS Direct surfaces federal automotive and fleet parts solicitations filtered to NAICS 423120, 441310, and 336390.",
+      "Federal facilities — military bases, GSA buildings, VA hospitals, and courthouses — constantly need electrical wiring installation, switchgear upgrades, and lighting-adjacent equipment work. These solicitations are frequent and often overlooked because SAM.gov mixes them in with unrelated construction trades. NAICS Direct pre-filters every open solicitation to NAICS codes 238210, 238290, 335313, and 335999 so you see only electrical-relevant bids.",
     naicsCodes: [
-      { code: "423120", description: "Motor Vehicle Supplies and New Parts Merchant Wholesalers" },
-      { code: "441310", description: "Automotive Parts and Accessories Stores" },
-      { code: "336390", description: "Other Motor Vehicle Parts Manufacturing" },
+      { code: "238210", description: "Electrical Contractors and Other Wiring Installation Contractors" },
+      { code: "238290", description: "Other Building Equipment Contractors" },
+      { code: "335313", description: "Switchgear and Switchboard Apparatus Manufacturing" },
+      { code: "335999", description: "All Other Miscellaneous Electrical Equipment and Component Manufacturing" },
     ],
     benefits: [
-      "Access to DoD, USPS, GSA fleet, and civilian agency vehicle contracts",
-      "Parts, accessories, tires, and maintenance supply solicitations",
-      "Covers NSN (National Stock Number) supply contracts",
+      "See only electrical-relevant bids — no noise from unrelated trades",
+      "Covers wiring installation, switchgear, and lighting-adjacent equipment contracts",
+      "Color-coded urgency flags on your dashboard so you never miss a closing date",
+      "Filter by agency: DoD, GSA, VA, and more",
       "Urgency filtering by closing window (2 days, this week, or open)",
-      "One-click access to the full solicitation on SAM.gov",
     ],
     faqs: [
       {
-        q: "What NAICS code is used for federal automotive parts contracts?",
-        a: "NAICS 423120 covers motor vehicle parts wholesale. Manufacturing uses 336390. NAICS Direct monitors all automotive-relevant codes including DLA (Defense Logistics Agency) supply contracts.",
+        q: "What NAICS code is used for federal electrical contracting contracts?",
+        a: "Most federal electrical wiring and installation contracts fall under NAICS 238210 (Electrical Contractors and Other Wiring Installation Contractors). Related equipment and switchgear solicitations may use 238290, 335313, or 335999 — NAICS Direct monitors all four.",
       },
       {
-        q: "Does the government buy NSN parts from small businesses?",
-        a: "Yes. DLA (Defense Logistics Agency) is a major buyer of NSN parts through solicitations that small businesses can bid on. Registration on SAM.gov and sometimes DIBBS (DLA Internet Bid Board System) is required.",
+        q: "How do I find government electrical contracts on SAM.gov?",
+        a: "Go to SAM.gov and filter by NAICS 238210, or use NAICS Direct — we do that filtering automatically and show only open, active bids with daily-synced deadlines.",
+      },
+      {
+        q: "Are small businesses competitive for federal electrical contracts?",
+        a: "Yes. Many electrical contracting solicitations are set aside for small businesses under SBA size standards for NAICS 238210. Service-Disabled Veteran-Owned, 8(a), and HUBZone firms have additional set-aside advantages.",
+      },
+      {
+        q: "What agencies buy the most electrical contracting services?",
+        a: "The Department of Defense (Army Corps of Engineers, Air Force, Navy), GSA Public Buildings Service, and VA facilities are the largest buyers of electrical installation and wiring work.",
+      },
+      {
+        q: "Is NAICS Direct free to use?",
+        a: "Yes — anyone can browse all active electrical bids free, no signup. Paid plans start at $14/month and add more NAICS niches plus priority support.",
       },
     ],
     keywords: [
-      "federal automotive parts contracts",
-      "government fleet parts bids",
-      "NAICS 423120 contracts",
-      "DLA automotive parts",
-      "SAM.gov vehicle parts",
+      "federal electrical contracts",
+      "government electrical contractor bids",
+      "NAICS 238210 contracts",
+      "SAM.gov electrical",
+      "electrical contractor government work",
+      "federal wiring installation contract",
     ],
   },
 
-  foodservice: {
-    slug: "foodservice",
-    title: "Federal Food Service Equipment Contracts | NAICS 423440 Bid Opportunities | NAICS Direct",
+  landscaping: {
+    slug: "landscaping",
+    title: "Federal Landscaping Contracts | NAICS 561730 Bid Opportunities | NAICS Direct",
     metaDescription:
-      "Find active federal food service and commercial kitchen equipment contracts. NAICS Direct filters SAM.gov bids by NAICS 423440, 333318 for food service distributors and manufacturers.",
-    h1: "Federal Food Service Equipment Contracts",
+      "Find active federal landscaping and grounds maintenance contracts on SAM.gov. NAICS Direct filters bids by NAICS 561730, 238910, 444220, 561790 for landscaping and grounds crews. Free to browse.",
+    h1: "Federal Landscaping & Grounds Maintenance Contracts",
     subtitle:
-      "Government bids for commercial kitchen equipment, cafeteria supplies, and food service items",
+      "NAICS-filtered government bids for landscaping, grounds maintenance, and site preparation contractors",
     intro:
-      "Military dining facilities (DFACs), VA hospital cafeterias, federal prison kitchens, and government cafeterias require a continuous supply of commercial kitchen equipment, serving supplies, and food service products. These contracts range from single-purchase equipment buys to multi-year supply agreements. NAICS Direct filters SAM.gov food service solicitations so you see only relevant bids.",
+      "Military bases, VA medical centers and national cemeteries, and GSA-managed federal buildings all require ongoing grounds maintenance — mowing, tree and shrub care, irrigation, and seasonal site work. These are recurring, multi-year base-plus-option contracts that most landscaping companies never find because SAM.gov buries them under thousands of unrelated results. NAICS Direct pre-filters every open solicitation to NAICS codes 561730, 238910, 444220, and 561790 so you see only landscaping-relevant bids.",
     naicsCodes: [
-      { code: "423440", description: "Restaurant and Hotel Equipment and Supplies Merchant Wholesalers" },
-      { code: "333318", description: "Other Commercial and Service Industry Machinery Manufacturing — commercial kitchen equipment" },
-      { code: "311999", description: "All Other Food Manufacturing — specialty food products" },
+      { code: "561730", description: "Landscaping Services" },
+      { code: "238910", description: "Site Preparation Contractors" },
+      { code: "444220", description: "Nursery, Garden Center, and Farm Supply Retailers" },
+      { code: "561790", description: "Other Services to Buildings and Dwellings" },
     ],
     benefits: [
-      "Military dining facility (DFAC) and VA cafeteria equipment contracts",
-      "Covers equipment, smallwares, and supply solicitations",
-      "Filter by agency: DoD, VA, BOP (Bureau of Prisons), USDA",
-      "Color-coded closing-deadline flags on your dashboard",
+      "Recurring contract opportunities — many grounds maintenance bids are multi-year base + option years",
+      "Covers landscaping, site preparation, and grounds-related supply solicitations",
+      "Color-coded urgency flags on your dashboard so you never miss a closing date",
+      "Filter by agency: VA, DoD, GSA, and more",
       "Urgency filtering by closing window (2 days, this week, or open)",
     ],
     faqs: [
       {
-        q: "What NAICS code covers government food service equipment contracts?",
-        a: "NAICS 423440 covers restaurant and hotel equipment wholesale. Commercial kitchen manufacturing uses 333318. NAICS Direct monitors both for federal solicitations.",
+        q: "What NAICS code is used for federal landscaping contracts?",
+        a: "Most federal landscaping and grounds maintenance contracts use NAICS 561730 (Landscaping Services). Related site prep and supply contracts may use 238910, 444220, or 561790 — NAICS Direct monitors all four.",
       },
       {
-        q: "Which agencies buy the most food service equipment?",
-        a: "The Department of Defense (DFAC/dining facilities), Department of Veterans Affairs (hospital cafeterias), and Bureau of Prisons are the largest federal food service equipment buyers.",
+        q: "How do I bid on government landscaping contracts?",
+        a: "You need an active SAM.gov registration and a CAGE code, and to meet the size standard for NAICS 561730. NAICS Direct shows you active solicitations — click any bid to access the full package on SAM.gov.",
+      },
+      {
+        q: "Are landscaping government contracts competitive?",
+        a: "They're accessible for small businesses. Many are set aside for small business or veteran-owned certifications, and recurring grounds contracts favor bidders with strong past performance and reliable equipment.",
+      },
+      {
+        q: "What agencies buy the most landscaping services?",
+        a: "The Department of Veterans Affairs (national cemeteries and hospital campuses), Department of Defense installations, and GSA-managed federal buildings are the largest buyers.",
+      },
+      {
+        q: "Is NAICS Direct free to use?",
+        a: "Yes — anyone can browse all active landscaping bids free, no signup. Paid plans start at $14/month and add more NAICS niches plus priority support.",
       },
     ],
     keywords: [
-      "federal food service contracts",
-      "government kitchen equipment bids",
-      "NAICS 423440 contracts",
-      "SAM.gov food service",
-      "military dining equipment contract",
+      "federal landscaping contracts",
+      "government grounds maintenance bids",
+      "NAICS 561730 contracts",
+      "SAM.gov landscaping",
+      "landscaping government contractor",
+      "federal grounds maintenance contract",
+    ],
+  },
+
+  security: {
+    slug: "security",
+    title: "Federal Security Systems Contracts | NAICS 561621 Bid Opportunities | NAICS Direct",
+    metaDescription:
+      "Find active federal security systems and surveillance equipment contracts on SAM.gov. NAICS Direct filters bids by NAICS 561621, 334290, 561612 for security integrators and equipment suppliers. Free to browse.",
+    h1: "Federal Security Systems Contracts",
+    subtitle:
+      "NAICS-filtered government bids for security system installation, surveillance equipment, and guard services",
+    intro:
+      "Federal facilities across DoD, GSA, DHS, and VA require ongoing investment in access control, surveillance and camera systems, alarm monitoring, and guard services. Physical security spend at federal sites is steady and growing, but these solicitations are easy to miss buried in SAM.gov's general services listings. NAICS Direct pre-filters every open solicitation to NAICS codes 561621, 334290, and 561612 so you see only security-relevant bids.",
+    naicsCodes: [
+      { code: "561621", description: "Security Systems Services (except Locksmiths)" },
+      { code: "334290", description: "Other Communications Equipment Manufacturing — includes surveillance and security equipment" },
+      { code: "561612", description: "Security Guards and Patrol Services" },
+    ],
+    benefits: [
+      "Covers security system installation, surveillance equipment, and guard service solicitations",
+      "Color-coded urgency flags on your dashboard so you never miss a closing date",
+      "Filter by agency: DoD, GSA, VA, and more",
+      "One-click access to the full solicitation on SAM.gov",
+      "Urgency filtering by closing window (2 days, this week, or open)",
+    ],
+    faqs: [
+      {
+        q: "What NAICS code is used for federal security systems contracts?",
+        a: "Most federal security system installation and monitoring contracts use NAICS 561621 (Security Systems Services, except Locksmiths). Related equipment and guard service solicitations may use 334290 or 561612 — NAICS Direct monitors all three.",
+      },
+      {
+        q: "How do I find government security systems contracts on SAM.gov?",
+        a: "Go to SAM.gov and filter by NAICS 561621, or use NAICS Direct — we do that filtering automatically and show only open, active bids with daily-synced deadlines.",
+      },
+      {
+        q: "Are small businesses competitive for federal security contracts?",
+        a: "Yes. Many security systems and guard services solicitations are set aside for small businesses, and Service-Disabled Veteran-Owned and 8(a) firms are especially competitive in this space.",
+      },
+      {
+        q: "What agencies buy the most security systems services?",
+        a: "The Department of Defense, Department of Homeland Security, GSA Federal Protective Service, and VA facilities are the largest buyers of physical security systems and monitoring services.",
+      },
+      {
+        q: "Is NAICS Direct free to use?",
+        a: "Yes — anyone can browse all active security systems bids free, no signup. Paid plans start at $14/month and add more NAICS niches plus priority support.",
+      },
+    ],
+    keywords: [
+      "federal security systems contracts",
+      "government surveillance equipment bids",
+      "NAICS 561621 contracts",
+      "SAM.gov security systems",
+      "physical security government contract",
+      "federal access control contract",
     ],
   },
 

@@ -33,7 +33,7 @@ export const BLOG_POSTS: BlogPost[] = [
     ],
     publishedDate: "2026-07-31",
     dek: "The Defense Logistics Agency's bid system moves billions of dollars a year through small businesses — and has almost no beginner-friendly documentation. Here's how it actually works.",
-    relatedNiches: ["safety", "automotive", "hvac"],
+    relatedNiches: ["safety", "electrical", "hvac"],
     content: [
       {
         type: "p",
