@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -16,6 +17,8 @@ type Bucket = "urgent" | "soon" | "open" | null
 
 function DashboardContent() {
   const searchParams = useSearchParams()
+  const { status } = useSession()
+  const isLoggedIn = status === "authenticated"
   const initialNiche = searchParams.get("niche") || NICHES[0].id
 
   const [activeNiche, setActiveNiche] = useState(initialNiche)
@@ -327,7 +330,7 @@ function DashboardContent() {
           {!loading && !error && displayBids.length > 0 && (
             <div className="space-y-3">
               {displayBids.map(bid => (
-                <BidCard key={bid.id} bid={bid} />
+                <BidCard key={bid.id} bid={bid} locked={bid.isDibbs && !isLoggedIn} />
               ))}
               <div className="text-center pt-4">
                 <p className="text-slate-600 text-xs">
