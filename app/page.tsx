@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { PUBLIC_NICHES, NICHE_MAP } from "@/lib/niches"
 import { cn } from "@/lib/utils"
 import {
@@ -56,6 +57,24 @@ const COMPARE = [
   { feature: "No Bloat / Simple UI", naics: true, higher: false },
 ]
 
+const HOW_IT_WORKS = [
+  {
+    step: "1",
+    title: "Pick your industry",
+    desc: "Choose from 8 built-in niches — flooring, HVAC, janitorial, safety, and more. Each one maps to the exact NAICS codes that match what you actually sell.",
+  },
+  {
+    step: "2",
+    title: "See only your bids",
+    desc: "NAICS Direct pulls live opportunities straight from SAM.gov's public API and filters out everything that isn't in your lane. No enterprise noise, no scrolling through thousands of irrelevant listings.",
+  },
+  {
+    step: "3",
+    title: "Act before the deadline",
+    desc: "Color-coded urgency flags, historical pricing, and optional email alerts mean you find out the moment a real opportunity posts — and you know what to bid.",
+  },
+]
+
 interface SampleBid {
   title: string
   agency: string | null
@@ -81,10 +100,16 @@ function timeAgo(iso: string | null) {
   return `${days}d ago`
 }
 
+type NicheRequestState = "idle" | "loading" | "success" | "error"
+
 export default function LandingPage() {
   const [email, setEmail] = useState("")
   const [submitted, setSubmitted] = useState(false)
   const [stats, setStats] = useState<PublicStats | null>(null)
+
+  const [nicheRequestEmail, setNicheRequestEmail] = useState("")
+  const [nicheRequestText, setNicheRequestText] = useState("")
+  const [nicheRequestState, setNicheRequestState] = useState<NicheRequestState>("idle")
 
   useEffect(() => {
     fetch("/api/public-stats")
@@ -96,6 +121,33 @@ export default function LandingPage() {
   function handleBeta(e: React.FormEvent) {
     e.preventDefault()
     if (email) setSubmitted(true)
+  }
+
+  async function handleNicheRequest(e: React.FormEvent) {
+    e.preventDefault()
+    setNicheRequestState("loading")
+    try {
+      const response = await fetch("https://formsubmit.co/ajax/ray@radiantz.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          email: nicheRequestEmail || "Not provided",
+          request: nicheRequestText,
+          _subject: "NAICS Direct: New niche request",
+          _template: "table",
+        }),
+      })
+      const result = await response.json()
+      if (result.success === "true" || result.success === true) {
+        setNicheRequestState("success")
+        setNicheRequestEmail("")
+        setNicheRequestText("")
+      } else {
+        throw new Error("failed")
+      }
+    } catch {
+      setNicheRequestState("error")
+    }
   }
 
   return (
@@ -169,6 +221,49 @@ export default function LandingPage() {
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" /> Real SAM.gov data</span>
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" /> No contract needed</span>
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-500" /> Cancel anytime</span>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works — 3 steps */}
+      <section className="py-16 border-t border-slate-800/60">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">How It Works</h2>
+            <p className="text-slate-400">Three steps. No training, no setup calls, no bloated dashboard to learn.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {HOW_IT_WORKS.map(({ step, title, desc }) => (
+              <div key={step} className="relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-full bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold text-sm flex-shrink-0">
+                    {step}
+                  </div>
+                  <h3 className="text-white font-semibold">{title}</h3>
+                </div>
+                <p className="text-slate-400 text-sm leading-relaxed pl-12">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Founder note — authenticity, not marketing copy */}
+      <section className="pb-16">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row gap-5 items-start">
+            <div className="w-11 h-11 rounded-full bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-xl flex-shrink-0">
+              👋
+            </div>
+            <div>
+              <p className="text-slate-300 leading-relaxed">
+                <span className="text-white font-semibold">Why I built this:</span> I run a small business that bids on federal
+                contracts, and I got tired of digging through thousands of SAM.gov listings that had nothing to do with what
+                I actually sell. So I built the filter I wished existed — and decided to open it up for other small
+                contractors dealing with the exact same noise.
+              </p>
+              <p className="text-slate-500 text-sm mt-3">— The person actually running NAICS Direct, not a marketing team</p>
+            </div>
           </div>
         </div>
       </section>
@@ -292,6 +387,41 @@ export default function LandingPage() {
                 </Card>
               </Link>
             ))}
+          </div>
+
+          {/* Request a niche */}
+          <div className="max-w-xl mx-auto mt-12">
+            <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-6 text-center">
+              <h3 className="text-white font-semibold mb-1">Don&apos;t see your niche?</h3>
+              <p className="text-slate-400 text-sm mb-4">Tell us what you sell and we&apos;ll consider adding it as a new category.</p>
+              {nicheRequestState === "success" ? (
+                <p className="text-emerald-400 text-sm font-medium">Thanks — we got your request and will follow up if we add it.</p>
+              ) : (
+                <form onSubmit={handleNicheRequest} className="space-y-3">
+                  <Input
+                    type="email"
+                    placeholder="your@email.com (optional)"
+                    value={nicheRequestEmail}
+                    onChange={e => setNicheRequestEmail(e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                  />
+                  <Textarea
+                    required
+                    placeholder="What industry / NAICS codes should we add?"
+                    value={nicheRequestText}
+                    onChange={e => setNicheRequestText(e.target.value)}
+                    className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 resize-none"
+                    rows={3}
+                  />
+                  {nicheRequestState === "error" && (
+                    <p className="text-red-400 text-xs">Something went wrong — email ray@radiantz.com directly.</p>
+                  )}
+                  <Button type="submit" disabled={nicheRequestState === "loading"} className="w-full bg-indigo-600 hover:bg-indigo-500">
+                    {nicheRequestState === "loading" ? "Sending..." : "Request This Niche"}
+                  </Button>
+                </form>
+              )}
+            </div>
           </div>
         </div>
       </section>
