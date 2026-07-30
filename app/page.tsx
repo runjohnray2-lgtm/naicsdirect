@@ -172,6 +172,7 @@ export default function LandingPage() {
             <a href="#live" className="text-slate-400 hover:text-white text-sm transition-colors">Live Bids</a>
             <a href="#niches" className="text-slate-400 hover:text-white text-sm transition-colors">Niches</a>
             <a href="#pricing" className="text-slate-400 hover:text-white text-sm transition-colors">Pricing</a>
+            <Link href="/blog" className="text-slate-400 hover:text-white text-sm transition-colors">Guides</Link>
             <Link href="/dashboard" className="text-slate-400 hover:text-white text-sm transition-colors">Live Demo</Link>
           </nav>
           <div className="flex items-center gap-3">
@@ -255,21 +256,23 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Founder note — authenticity, not marketing copy */}
+      {/* Founder note — real name/identity for E-E-A-T (authenticity signal), not marketing copy */}
       <section className="pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row gap-5 items-start">
-            <div className="w-11 h-11 rounded-full bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-xl flex-shrink-0">
-              👋
+            <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-lg font-bold text-white flex-shrink-0">
+              RR
             </div>
             <div>
               <p className="text-slate-300 leading-relaxed">
-                <span className="text-white font-semibold">Why I built this:</span> I run a small business that bids on federal
-                contracts, and I got tired of digging through thousands of SAM.gov listings that had nothing to do with what
-                I actually sell. So I built the filter I wished existed — and decided to open it up for other small
-                contractors dealing with the exact same noise.
+                <span className="text-white font-semibold">Why I built this:</span> I run Radiantz LED Lighting, a small
+                manufacturer and government contractor bidding on federal and state contracts through SAM.gov, DIBBS, and GSA
+                Schedule. I got tired of digging through thousands of SAM.gov listings that had nothing to do with what I
+                actually sell. So I built the filter I wished existed — and decided to open it up for other small contractors
+                dealing with the exact same noise.
               </p>
-              <p className="text-slate-500 text-sm mt-3">— The person actually running NAICS Direct, not a marketing team</p>
+              <p className="text-white text-sm font-semibold mt-3">Ray Runyan</p>
+              <p className="text-slate-500 text-sm">Founder, NAICS Direct &middot; Owner, Radiantz LED Lighting, Inc.</p>
             </div>
           </div>
         </div>
