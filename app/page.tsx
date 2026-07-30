@@ -17,32 +17,26 @@ import {
 const PRICING = [
   {
     name: "Starter",
-    price: 29,
-    betaPrice: 14,
+    price: 14,
     description: "Perfect for single-industry contractors",
-    features: ["1 niche category", "Live SAM.gov feed", "Deadline alerts", "DIBBS bid unlock", "Email support"],
+    features: ["1 NAICS niche", "Live SAM.gov data, synced daily", "Deadline urgency alerts", "DIBBS bid unlock"],
     cta: "Start Free Trial",
-    stripeUrl: "https://buy.stripe.com/6oUaEYc2X6Ni1l04cl18c00",
     highlighted: false,
   },
   {
     name: "Pro",
-    price: 59,
-    betaPrice: 29,
+    price: 29,
     description: "For contractors working multiple categories",
-    features: ["3 niche categories", "Live SAM.gov feed", "Deadline alerts", "DIBBS bid unlock", "Email alerts for new bids", "Priority support"],
+    features: ["3 NAICS niches", "Live SAM.gov data, synced daily", "Deadline urgency alerts", "DIBBS bid unlock", "Priority support"],
     cta: "Start Free Trial",
-    stripeUrl: "https://buy.stripe.com/28E7sM2sn5Je2p46kt18c01",
     highlighted: true,
   },
   {
-    name: "Agency",
-    price: 99,
-    betaPrice: 49,
+    name: "Business",
+    price: 49,
     description: "For distributors and multi-niche resellers",
-    features: ["All 8 niches", "Live SAM.gov feed", "Deadline alerts", "DIBBS bid unlock", "Instant email alerts", "Team access", "Dedicated support"],
+    features: ["All 8 NAICS niches", "Live SAM.gov data, synced daily", "Deadline urgency alerts", "DIBBS bid unlock", "Dedicated support"],
     cta: "Start Free Trial",
-    stripeUrl: "https://buy.stripe.com/eVqcN60kf5Jee7MdMV18c02",
     highlighted: false,
   },
 ]
@@ -183,7 +177,7 @@ export default function LandingPage() {
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-3xl pointer-events-none" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 md:py-28 text-center">
           <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 mb-6 inline-flex">
-            🎉 Beta Access — 50% Off, Locked In Forever
+            🎉 Now in Beta — Founding Member Access
           </Badge>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
             Federal Bids,{" "}
@@ -431,9 +425,9 @@ export default function LandingPage() {
       <section id="pricing" className="py-16 border-t border-slate-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10">
-            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 mb-4">Beta Pricing — 50% Off, Locked In Forever</Badge>
+            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 mb-4">Beta Pricing — Simple, Honest Rates</Badge>
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Simple, Honest Pricing</h2>
-            <p className="text-slate-400">Beta members lock in this price forever. No annual contracts, cancel anytime.</p>
+            <p className="text-slate-400">3-day free trial on every plan. No annual contracts, cancel anytime.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {PRICING.map(plan => (
@@ -455,13 +449,10 @@ export default function LandingPage() {
                   <p className="text-slate-400 text-sm mb-4">{plan.description}</p>
                   <div className="mb-6">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-bold text-white">${plan.betaPrice}</span>
+                      <span className="text-3xl font-bold text-white">${plan.price}</span>
                       <span className="text-slate-400 text-sm">/month</span>
                     </div>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className="text-slate-600 line-through text-sm">${plan.price}/mo</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs">50% off, forever</Badge>
-                    </div>
+                    <p className="text-emerald-400 text-xs mt-1.5">3-day free trial &mdash; cancel anytime, no charge if you cancel first</p>
                   </div>
                   <ul className="space-y-2.5 mb-6">
                     {plan.features.map(f => (
@@ -475,7 +466,7 @@ export default function LandingPage() {
                     variant="default"
                     asChild
                   >
-                    <a href={plan.stripeUrl} target="_blank" rel="noopener noreferrer">{plan.cta}</a>
+                    <Link href="/pricing">{plan.cta}</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -490,7 +481,7 @@ export default function LandingPage() {
             <TrendingUp className="w-7 h-7 text-indigo-400" />
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Join the Beta</h2>
-          <p className="text-slate-400 mb-8">Get early access, lock in 50% off forever, and help shape the product. First 100 members only.</p>
+          <p className="text-slate-400 mb-8">Get early access and help shape the product as we grow. First 100 members only.</p>
           {submitted ? (
             <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-6">
               <Check className="w-8 h-8 text-emerald-400 mx-auto mb-2" />

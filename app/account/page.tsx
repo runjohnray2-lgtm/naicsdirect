@@ -51,7 +51,7 @@ export default async function AccountPage({
 
         {showSuccess && (
           <div className="mb-8 bg-green-500/10 border border-green-500/20 rounded-xl px-6 py-4 text-sm text-green-400">
-            Welcome to NAICS Direct! Your 14-day free trial has started.
+            Welcome to NAICS Direct! Your 3-day free trial has started.
           </div>
         )}
 

@@ -81,7 +81,7 @@ export default function PricingCard({
           <span className="text-4xl font-bold text-white">${plan.price}</span>
           <span className="text-slate-500 text-sm">/month</span>
         </div>
-        <p className="text-xs text-green-400 mt-1">14-day free trial included</p>
+        <p className="text-xs text-green-400 mt-1">3-day free trial included</p>
       </div>
 
       <ul className="space-y-3 mb-8 flex-1">
