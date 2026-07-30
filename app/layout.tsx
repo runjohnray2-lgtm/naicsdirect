@@ -64,11 +64,19 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Person",
+        "@id": `${SITE_URL}/#founder`,
+        name: "Ray Runyan",
+        jobTitle: "Founder",
+        worksFor: { "@id": `${SITE_URL}/#organization` },
+      },
+      {
         "@type": "Organization",
         "@id": `${SITE_URL}/#organization`,
         name: "NAICS Direct",
         url: SITE_URL,
         logo: `${SITE_URL}/icon`,
+        founder: { "@id": `${SITE_URL}/#founder` },
       },
       {
         "@type": "WebSite",
