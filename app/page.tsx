@@ -35,7 +35,7 @@ const PRICING = [
     name: "Business",
     price: 49,
     description: "For distributors and multi-niche resellers",
-    features: ["All 8 NAICS niches", "Live SAM.gov data, synced daily", "Deadline urgency alerts", "DIBBS bid unlock", "Dedicated support"],
+    features: ["All 9 NAICS niches", "Live SAM.gov data, synced daily", "Deadline urgency alerts", "DIBBS bid unlock", "Dedicated support"],
     cta: "Start Free Trial",
     highlighted: false,
   },
@@ -54,7 +54,7 @@ const HOW_IT_WORKS = [
   {
     step: "1",
     title: "Pick your industry",
-    desc: "Choose from 8 built-in niches — flooring, HVAC, janitorial, safety, and more. Each one maps to the exact NAICS codes that match what you actually sell.",
+    desc: "Choose from 9 built-in niches — flooring, HVAC, janitorial, safety, and more. Each one maps to the exact NAICS codes that match what you actually sell.",
   },
   {
     step: "2",
@@ -210,7 +210,7 @@ export default function LandingPage() {
               {stats ? stats.totalActiveBids.toLocaleString() : "…"} live open opportunities
             </span>
             <span className="text-slate-600 hidden sm:inline">•</span>
-            <span className="text-slate-400">across 8 industries</span>
+            <span className="text-slate-400">across 9 industries</span>
             <span className="text-slate-600 hidden sm:inline">•</span>
             <span className="text-slate-400">last synced {stats ? timeAgo(stats.lastSyncedAt) : "…"}</span>
           </div>
@@ -378,7 +378,7 @@ export default function LandingPage() {
       <section id="niches" className="py-16 border-t border-slate-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">8 Industry Niches</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">{PUBLIC_NICHES.length} Industry Niches</h2>
             <p className="text-slate-400">Each niche pulls live bids from SAM.gov filtered to your exact industry codes.</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

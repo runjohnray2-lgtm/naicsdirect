@@ -36,7 +36,7 @@ export const PLANS = [
     interval: "month",
     description: "For teams and established contractors winning big",
     features: [
-      "All 8 NAICS niches",
+      "All 9 NAICS niches",
       "Live SAM.gov data, synced daily",
       "Urgency filtering (closing soon, this week, open)",
       "Dedicated support",
