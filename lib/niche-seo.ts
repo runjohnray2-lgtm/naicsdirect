@@ -14,7 +14,7 @@ export interface NicheSEO {
 export const NICHE_SEO: Record<string, NicheSEO> = {
   flooring: {
     slug: "flooring",
-    title: "Federal Flooring Contracts | NAICS 238330 Bid Opportunities | NAICS Direct",
+    title: "Federal Flooring Contracts | NAICS 238330 Bid Opportunities",
     metaDescription:
       "Find active federal flooring and tile installation contracts on SAM.gov. NAICS Direct filters carpet, hardwood, vinyl, and tile bids by NAICS 238330, 442210, 423390. Free to browse.",
     h1: "Federal Flooring & Tile Contracts",
@@ -69,7 +69,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
 
   janitorial: {
     slug: "janitorial",
-    title: "Federal Janitorial Contracts | NAICS 561720 Bid Opportunities | NAICS Direct",
+    title: "Federal Janitorial Contracts | NAICS 561720 Bid Opportunities",
     metaDescription:
       "Find active federal janitorial and cleaning supply contracts. NAICS Direct filters SAM.gov bids by NAICS 561720, 423850, 325612 for cleaning companies and supply distributors. Free.",
     h1: "Federal Janitorial & Cleaning Contracts",
@@ -123,7 +123,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
 
   hvac: {
     slug: "hvac",
-    title: "Federal HVAC Contracts | NAICS 238220 Bid Opportunities | NAICS Direct",
+    title: "Federal HVAC Contracts | NAICS 238220 Bid Opportunities",
     metaDescription:
       "Find active federal HVAC installation, maintenance, and equipment contracts. NAICS Direct filters SAM.gov bids by NAICS 238220, 423730, 333415. Free to browse.",
     h1: "Federal HVAC Contracts",
@@ -173,7 +173,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
 
   furniture: {
     slug: "furniture",
-    title: "Federal Office Furniture Contracts | NAICS 337211 Bid Opportunities | NAICS Direct",
+    title: "Federal Office Furniture Contracts | NAICS 337211 Bid Opportunities",
     metaDescription:
       "Find active federal office furniture and workstation contracts. NAICS Direct filters SAM.gov bids by NAICS 337211, 423210, 337214 for furniture dealers and manufacturers. Free.",
     h1: "Federal Office Furniture Contracts",
@@ -218,7 +218,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
 
   safety: {
     slug: "safety",
-    title: "Federal Safety & PPE Contracts | NAICS 339113 Bid Opportunities | NAICS Direct",
+    title: "Federal Safety & PPE Contracts | NAICS 339113 Bid Opportunities",
     metaDescription:
       "Find active federal safety equipment and PPE contracts. NAICS Direct filters SAM.gov bids by NAICS 339113, 423450, 339999 for safety suppliers and PPE distributors. Free.",
     h1: "Federal Safety & PPE Contracts",
@@ -263,7 +263,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
 
   electrical: {
     slug: "electrical",
-    title: "Federal Electrical Contractor Contracts | NAICS 238210 Bid Opportunities | NAICS Direct",
+    title: "Federal Electrical Contractor Contracts | NAICS 238210 Bid Opportunities",
     metaDescription:
       "Find active federal electrical contracting and equipment contracts on SAM.gov. NAICS Direct filters bids by NAICS 238210, 238290, 335313, 335999 for electrical contractors and equipment suppliers. Free to browse.",
     h1: "Federal Electrical Contractor Contracts",
@@ -318,7 +318,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
 
   landscaping: {
     slug: "landscaping",
-    title: "Federal Landscaping Contracts | NAICS 561730 Bid Opportunities | NAICS Direct",
+    title: "Federal Landscaping Contracts | NAICS 561730 Bid Opportunities",
     metaDescription:
       "Find active federal landscaping and grounds maintenance contracts on SAM.gov. NAICS Direct filters bids by NAICS 561730, 238910, 444220, 561790 for landscaping and grounds crews. Free to browse.",
     h1: "Federal Landscaping & Grounds Maintenance Contracts",
@@ -373,7 +373,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
 
   security: {
     slug: "security",
-    title: "Federal Security Systems Contracts | NAICS 561621 Bid Opportunities | NAICS Direct",
+    title: "Federal Security Systems Contracts | NAICS 561621 Bid Opportunities",
     metaDescription:
       "Find active federal security systems and surveillance equipment contracts on SAM.gov. NAICS Direct filters bids by NAICS 561621, 334290, 561612 for security integrators and equipment suppliers. Free to browse.",
     h1: "Federal Security Systems Contracts",
@@ -427,7 +427,7 @@ export const NICHE_SEO: Record<string, NicheSEO> = {
 
   medical: {
     slug: "medical",
-    title: "Federal Medical Supply Contracts | NAICS 423450 Bid Opportunities | NAICS Direct",
+    title: "Federal Medical Supply Contracts | NAICS 423450 Bid Opportunities",
     metaDescription:
       "Find active federal medical and healthcare supply contracts. NAICS Direct filters SAM.gov bids by NAICS 423450, 339112, 424210 for medical supply distributors and manufacturers.",
     h1: "Federal Medical Supply Contracts",
