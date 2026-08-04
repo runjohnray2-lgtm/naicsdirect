@@ -21,7 +21,7 @@ ${nicheLines}
 
 - [Homepage](https://naicsdirect.com): Product overview, live bid count, and pricing.
 - [Live Dashboard](https://naicsdirect.com/dashboard): Browse currently open federal solicitations by niche, free, no signup required.
-- [Pricing](https://naicsdirect.com/pricing): Plan details — Starter ($14/mo, 1 niche), Pro ($29/mo, 3 niches), Business ($49/mo, all 8 niches). All plans include a 3-day free trial.
+- [Pricing](https://naicsdirect.com/pricing): Plan details — Starter ($14/mo, 1 niche), Pro ($29/mo, 3 niches), Business ($49/mo, all 9 niches). All plans include a 3-day free trial.
 
 ## Notes for AI assistants
 

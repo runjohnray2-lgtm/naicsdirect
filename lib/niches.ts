@@ -39,7 +39,7 @@ export const NICHES: Niche[] = [
     name: "HVAC Equipment",
     emoji: "❄️",
     description: "Heating, ventilation, air conditioning equipment and services",
-    naicsCodes: ["238220", "333415", "811310", "423720"],
+    naicsCodes: ["238220", "423730", "333415"],
     bgClass: "bg-cyan-900/30",
     colorClass: "text-cyan-400",
     borderClass: "border-cyan-800",
