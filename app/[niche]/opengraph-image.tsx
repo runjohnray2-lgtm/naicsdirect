@@ -61,7 +61,7 @@ export default async function OGImage({ params }: { params: Promise<{ niche: str
           {title}
         </div>
         <div style={{ fontSize: 26, color: "#94a3b8", marginTop: 24, maxWidth: 900 }}>
-          NAICS codes: {codes}
+          {`NAICS codes: ${codes}`}
         </div>
       </div>
     ),
