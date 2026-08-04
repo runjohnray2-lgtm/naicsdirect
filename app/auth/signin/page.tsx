@@ -18,9 +18,14 @@ function SignInForm() {
     setLoading(true)
     setError("")
 
+    // BUG FIX: callbackUrl was computed above but never passed into signIn(), so
+    // next-auth defaulted to the CURRENT page URL (/auth/signin itself) as the
+    // post-verification redirect target. Every successful magic-link click was
+    // landing back on the sign-in page, which looked identical to the link failing.
     const result = await signIn("resend", {
       email,
       redirect: false,
+      callbackUrl,
     })
 
     if (result?.error) {
