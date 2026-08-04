@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
 import { NICHE_MAP } from "@/lib/niches"
 import { isDibbsPosting } from "@/lib/dibbs"
+import { getEntitlement } from "@/lib/entitlement"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -11,6 +13,25 @@ export async function GET(request: NextRequest) {
 
   if (!NICHE_MAP[nicheId]) {
     return NextResponse.json({ error: "Invalid niche" }, { status: 400 })
+  }
+
+  const session = await auth()
+  const entitlement = await getEntitlement(session?.user?.id)
+
+  // Gated (trialing/active) subscribers only get full results for niches they've actually
+  // chosen. Anonymous visitors and lapsed/no-subscription users keep today's free-preview
+  // behavior — this restriction only ever applies to paying/trialing customers, never removes
+  // the public "browse free, no signup" funnel.
+  if (entitlement.isGated && !entitlement.allowedNicheIds.includes(nicheId)) {
+    return NextResponse.json(
+      {
+        error: entitlement.selectedNiches.length === 0
+          ? "Choose your niche(s) in Account settings to start seeing full results."
+          : "This niche isn't part of your current plan. Manage your niches from Account settings.",
+        needsNicheSelection: entitlement.selectedNiches.length === 0,
+      },
+      { status: 403 }
+    )
   }
 
   try {
