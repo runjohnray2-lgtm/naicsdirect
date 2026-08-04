@@ -21,14 +21,20 @@ export async function POST() {
       )
     }
 
+    // AUTH_URL is the Auth.js v5 env var this project actually sets (see auth.config.ts).
+    // NEXT_PUBLIC_APP_URL was never configured, which produced "undefined/account" as the
+    // Stripe portal return_url - same root cause as the checkout route bug.
+    const baseUrl = process.env.AUTH_URL ?? "https://naicsdirect.com"
+
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: subscription.stripeCustomerId,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/account`,
+      return_url: `${baseUrl}/account`,
     })
 
     return NextResponse.json({ url: portalSession.url })
   } catch (error) {
     console.error("Billing portal error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    const message = error instanceof Error ? error.message : "Internal server error"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
