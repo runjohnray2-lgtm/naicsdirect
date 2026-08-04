@@ -11,9 +11,16 @@ import { BidCard } from "@/components/bid-card"
 import { NICHES, PUBLIC_NICHES } from "@/lib/niches"
 import { Bid } from "@/types"
 import { cn } from "@/lib/utils"
-import { Zap, RefreshCw, AlertCircle, BarChart3, ChevronLeft, X } from "lucide-react"
+import { Zap, RefreshCw, AlertCircle, BarChart3, ChevronLeft, X, Lock } from "lucide-react"
 
 type Bucket = "urgent" | "soon" | "open" | null
+
+interface EntitlementState {
+  isGated: boolean
+  nicheLimit: number
+  selectedNiches: string[]
+  allowedNicheIds: string[]
+}
 
 function DashboardContent() {
   const searchParams = useSearchParams()
@@ -26,17 +33,34 @@ function DashboardContent() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [needsNicheSelection, setNeedsNicheSelection] = useState(false)
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
   const [filterBucket, setFilterBucket] = useState<Bucket>(null)
+  const [entitlement, setEntitlement] = useState<EntitlementState | null>(null)
+
+  useEffect(() => {
+    if (!isLoggedIn) return
+    fetch("/api/account/niches")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setEntitlement(data))
+      .catch(() => setEntitlement(null))
+  }, [isLoggedIn])
 
   const fetchBids = useCallback(async (nicheId: string) => {
     setLoading(true)
     setError(null)
+    setNeedsNicheSelection(false)
     setFilterBucket(null)
     try {
       const res = await fetch(`/api/bids?niche=${nicheId}`)
       const data = await res.json()
-      if (data.error) throw new Error(data.error)
+      if (data.error) {
+        setError(data.error)
+        setNeedsNicheSelection(Boolean(data.needsNicheSelection))
+        setBids([])
+        setTotal(0)
+        return
+      }
       setBids(data.bids || [])
       setTotal(data.total || 0)
       setLastRefresh(new Date())
@@ -53,6 +77,11 @@ function DashboardContent() {
   }, [activeNiche, fetchBids])
 
   const currentNiche = NICHES.find(n => n.id === activeNiche) || NICHES[0]
+
+  // Gated (trialing/active) users only get a lock icon on niches outside their plan —
+  // everyone else (anonymous, canceled, no subscription) keeps free-preview access to all.
+  const isNicheLocked = (nicheId: string) =>
+    !!entitlement?.isGated && !entitlement.allowedNicheIds.includes(nicheId)
 
   // Categorize bids by urgency (days until deadline)
   const getDays = (b: Bid) =>
@@ -132,17 +161,30 @@ function DashboardContent() {
                 )}
               >
                 <span className="text-base">{niche.emoji}</span>
-                <span className="font-medium truncate">{niche.name}</span>
+                <span className="font-medium truncate flex-1">{niche.name}</span>
+                {isNicheLocked(niche.id) && <Lock className="w-3 h-3 text-slate-600 flex-shrink-0" />}
               </button>
             ))}
             <div className="pt-4 px-2">
-              <div className="bg-indigo-950/40 border border-indigo-500/20 rounded-lg p-3">
-                <p className="text-indigo-400 text-xs font-semibold mb-1">Beta Access</p>
-                <p className="text-slate-500 text-xs">All 9 niches unlocked during beta period.</p>
-                <Link href="/#pricing" className="text-indigo-400 hover:text-indigo-300 text-xs mt-2 inline-block underline underline-offset-2">
-                  View pricing &#x2192;
-                </Link>
-              </div>
+              {entitlement?.isGated ? (
+                <div className="bg-indigo-950/40 border border-indigo-500/20 rounded-lg p-3">
+                  <p className="text-indigo-400 text-xs font-semibold mb-1">Your Plan</p>
+                  <p className="text-slate-500 text-xs">
+                    {entitlement.selectedNiches.length} of {entitlement.nicheLimit} niche slot{entitlement.nicheLimit === 1 ? "" : "s"} in use.
+                  </p>
+                  <Link href="/account" className="text-indigo-400 hover:text-indigo-300 text-xs mt-2 inline-block underline underline-offset-2">
+                    Manage niches &#x2192;
+                  </Link>
+                </div>
+              ) : (
+                <div className="bg-indigo-950/40 border border-indigo-500/20 rounded-lg p-3">
+                  <p className="text-indigo-400 text-xs font-semibold mb-1">Free Preview</p>
+                  <p className="text-slate-500 text-xs">Browsing all niches free. Subscribe to keep full access to your chosen niches.</p>
+                  <Link href="/#pricing" className="text-indigo-400 hover:text-indigo-300 text-xs mt-2 inline-block underline underline-offset-2">
+                    View pricing &#x2192;
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </aside>
@@ -164,6 +206,7 @@ function DashboardContent() {
               >
                 <span>{niche.emoji}</span>
                 <span>{niche.name}</span>
+                {isNicheLocked(niche.id) && <Lock className="w-3 h-3" />}
               </button>
             ))}
           </div>
@@ -283,8 +326,36 @@ function DashboardContent() {
             </div>
           )}
 
-          {/* ERROR */}
-          {!loading && error && (
+          {/* NICHE-LOCKED (paying customer viewing a niche outside their plan) */}
+          {!loading && error && needsNicheSelection === false && isNicheLocked(activeNiche) && (
+            <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-6 text-center">
+              <Lock className="w-8 h-8 text-indigo-400 mx-auto mb-3" />
+              <p className="text-indigo-300 font-medium mb-1">Not part of your current plan</p>
+              <p className="text-slate-400 text-sm mb-4">{error}</p>
+              <Link href="/account">
+                <Button size="sm" className="bg-indigo-600 hover:bg-indigo-500">
+                  Manage Your Niches
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {/* NEEDS FIRST-TIME NICHE SELECTION */}
+          {!loading && error && needsNicheSelection && (
+            <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-6 text-center">
+              <Zap className="w-8 h-8 text-indigo-400 mx-auto mb-3" />
+              <p className="text-indigo-300 font-medium mb-1">Choose your niches to get started</p>
+              <p className="text-slate-400 text-sm mb-4">{error}</p>
+              <Link href="/account">
+                <Button size="sm" className="bg-indigo-600 hover:bg-indigo-500">
+                  Choose Niches
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {/* GENERIC ERROR (real failures, not entitlement) */}
+          {!loading && error && !needsNicheSelection && !isNicheLocked(activeNiche) && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
               <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-3" />
               <p className="text-red-400 font-medium mb-1">Failed to load bids</p>
