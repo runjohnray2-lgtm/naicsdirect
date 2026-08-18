@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
     postedFrom: formatSamDate(oneYearAgo),
     postedTo: formatSamDate(today),
     solnum,
+    ptype: "o,k,p",
   })
 
   const response = await fetch(`https://api.sam.gov/opportunities/v2/search?${params}`, {
@@ -32,8 +33,9 @@ export async function GET(req: NextRequest) {
   })
 
   if (!response.ok) {
+    const detail = await response.text().catch(() => "")
     return NextResponse.json(
-      { error: `SAM API returned ${response.status}` },
+      { error: `SAM API returned ${response.status}`, detail: detail.slice(0, 1000) },
       { status: response.status }
     )
   }
