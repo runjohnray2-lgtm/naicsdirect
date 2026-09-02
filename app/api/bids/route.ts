@@ -18,10 +18,6 @@ export async function GET(request: NextRequest) {
   const session = await auth()
   const entitlement = await getEntitlement(session?.user?.id)
 
-  // Gated (trialing/active) subscribers only get full results for niches they've actually
-  // chosen. Anonymous visitors and lapsed/no-subscription users keep today's free-preview
-  // behavior — this restriction only ever applies to paying/trialing customers, never removes
-  // the public "browse free, no signup" funnel.
   if (entitlement.isGated && !entitlement.allowedNicheIds.includes(nicheId)) {
     return NextResponse.json(
       {
@@ -35,14 +31,21 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Radiantz is an internal cross-category watchlist. Query it by its complete
+    // NAICS set instead of relying on Bid.niche, because public customer niches
+    // intentionally own many of the same NAICS codes.
+    const where = nicheId === "radiantz"
+      ? { naicsCode: { in: NICHE_MAP.radiantz.naicsCodes }, active: true }
+      : { niche: nicheId, active: true }
+
     const [rawBids, total] = await Promise.all([
       prisma.bid.findMany({
-        where: { niche: nicheId, active: true },
+        where,
         orderBy: { responseDeadline: "asc" },
         skip: page * take,
         take,
       }),
-      prisma.bid.count({ where: { niche: nicheId, active: true } }),
+      prisma.bid.count({ where }),
     ])
 
     const bids = rawBids.map((b) => ({
