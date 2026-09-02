@@ -1,0 +1,117 @@
+import type { NicheSEO } from "@/lib/niche-seo"
+
+export const EXTRA_NICHE_SEO: Record<string, NicheSEO> = {
+  hardware: {
+    slug: "hardware",
+    title: "Federal Hardware & Fastener Contracts | Government Bid Opportunities",
+    metaDescription: "Find active federal hardware, fastener, tool, and industrial supply contracts filtered from SAM.gov.",
+    h1: "Federal Hardware & Fastener Contracts",
+    subtitle: "Government bids for hardware, fasteners, tools, and industrial supplies",
+    intro: "Federal agencies routinely buy commercial hardware, fasteners, tools, and industrial supplies through simplified acquisitions and small-business set-asides. NAICS Direct groups the relevant NAICS codes into one focused feed so distributors and resellers can find these opportunities earlier.",
+    naicsCodes: [
+      { code: "423710", description: "Hardware Merchant Wholesalers" },
+      { code: "423840", description: "Industrial Supplies Merchant Wholesalers" },
+      { code: "332722", description: "Bolt, Nut, Screw, Rivet, and Washer Manufacturing" },
+    ],
+    benefits: ["Focus on source-and-resell opportunities", "See closing dates and set-aside status quickly", "Reduce time spent searching unrelated SAM.gov notices", "Track recurring hardware and MRO demand"],
+    faqs: [
+      { q: "What kinds of hardware bids appear here?", a: "Typical opportunities include fasteners, hand tools, shop supplies, repair hardware, and other industrial or MRO items." },
+      { q: "Can distributors bid without manufacturing the item?", a: "Often yes, but each solicitation must be checked for manufacturer, country-of-origin, nonmanufacturer-rule, and other compliance requirements." },
+    ],
+    keywords: ["federal hardware contracts", "government fastener bids", "SAM.gov hardware", "NAICS 423710 contracts", "industrial supply government bids"],
+  },
+  "industrial-equipment": {
+    slug: "industrial-equipment",
+    title: "Federal Industrial Equipment Contracts | Government Machinery Bids",
+    metaDescription: "Find active federal industrial machinery, forklift, material-handling, and equipment supply opportunities on SAM.gov.",
+    h1: "Federal Industrial Equipment Contracts",
+    subtitle: "Government bids for machinery, forklifts, material handling, and industrial equipment",
+    intro: "Federal facilities buy forklifts, material-handling equipment, machinery, and related industrial products across civilian and defense agencies. These purchases can be strong opportunities for equipment dealers and resellers when delivery, service, and compliance requirements are understood early.",
+    naicsCodes: [
+      { code: "423830", description: "Industrial Machinery and Equipment Merchant Wholesalers" },
+      { code: "333924", description: "Industrial Truck, Tractor, Trailer, and Stacker Machinery Manufacturing" },
+      { code: "333923", description: "Overhead Traveling Crane, Hoist, and Monorail System Manufacturing" },
+    ],
+    benefits: ["Surface equipment purchases before quote deadlines", "Useful for dealer and distributor sourcing", "Identify service and delivery requirements early", "Track federal material-handling demand"],
+    faqs: [
+      { q: "Does this include forklift solicitations?", a: "Yes. Forklifts and other industrial trucks commonly fall within the industrial equipment NAICS codes monitored in this niche." },
+      { q: "What should I check before bidding equipment?", a: "Verify exact specifications, delivery location, warranty, local service obligations, country of origin, and whether an approved dealer or manufacturer authorization is required." },
+    ],
+    keywords: ["federal forklift contracts", "government industrial equipment bids", "NAICS 423830", "SAM.gov machinery", "material handling government contract"],
+  },
+  "office-supplies": {
+    slug: "office-supplies",
+    title: "Federal Office Supply Contracts | Government Supply Bids",
+    metaDescription: "Find active federal stationery, office supply, form, and workplace consumable opportunities filtered from SAM.gov.",
+    h1: "Federal Office Supply Contracts",
+    subtitle: "Government bids for stationery, workplace consumables, forms, and general office supplies",
+    intro: "Federal offices purchase recurring supplies ranging from paper and writing products to filing, forms, and workplace consumables. NAICS Direct filters relevant opportunities into a dedicated office-supply feed for distributors and small-business resellers.",
+    naicsCodes: [
+      { code: "424120", description: "Stationery and Office Supplies Merchant Wholesalers" },
+      { code: "459410", description: "Office Supplies and Stationery Retailers" },
+    ],
+    benefits: ["Find recurring commodity buys", "Useful for distributors and resellers", "See deadlines without broad SAM.gov searching", "Track small-business set-asides"],
+    faqs: [
+      { q: "What products are included?", a: "Typical opportunities include stationery, paper products, office consumables, forms, filing products, and related workplace supplies." },
+      { q: "Are these usually simple bids?", a: "Some are straightforward commercial-item buys, but every solicitation still needs review for brand restrictions, delivery terms, country of origin, and socioeconomic requirements." },
+    ],
+    keywords: ["federal office supply contracts", "government stationery bids", "NAICS 424120", "SAM.gov office supplies"],
+  },
+  "signs-printing": {
+    slug: "signs-printing",
+    title: "Federal Signs & Printing Contracts | Government Print Bids",
+    metaDescription: "Find active federal sign, label, display, and commercial printing opportunities on SAM.gov.",
+    h1: "Federal Signs & Printing Contracts",
+    subtitle: "Government bids for signs, labels, displays, decals, and commercial printing",
+    intro: "Federal agencies continually purchase signs, labels, decals, printed materials, displays, and identification products. This niche combines signage and commercial printing NAICS codes so print shops, sign companies, and resellers can find relevant opportunities sooner.",
+    naicsCodes: [
+      { code: "339950", description: "Sign Manufacturing" },
+      { code: "323111", description: "Commercial Printing (except Screen and Books)" },
+      { code: "323113", description: "Commercial Screen Printing" },
+    ],
+    benefits: ["Covers signs, labels, decals, and printed materials", "Good fit for commercial printers and sign shops", "Identify artwork and delivery requirements early", "Filter out unrelated federal notices"],
+    faqs: [
+      { q: "Does this include decals and labels?", a: "Yes. Depending on the procurement, decals, identification products, labels, signs, and printed graphics can appear under these NAICS codes." },
+      { q: "Can I outsource production?", a: "Potentially, but set-aside rules, subcontracting limits, source restrictions, and the exact solicitation terms must be reviewed before relying on an outside producer." },
+    ],
+    keywords: ["federal sign contracts", "government printing bids", "NAICS 339950", "SAM.gov printing", "government decal contracts"],
+  },
+  "vehicle-parts": {
+    slug: "vehicle-parts",
+    title: "Federal Vehicle Parts Contracts | Government Fleet Supply Bids",
+    metaDescription: "Find active federal motor vehicle parts, accessories, tires, and fleet supply opportunities filtered from SAM.gov.",
+    h1: "Federal Vehicle Parts & Supply Contracts",
+    subtitle: "Government bids for vehicle parts, accessories, tires, and fleet consumables",
+    intro: "Federal fleets need a steady supply of replacement parts, accessories, tires, and maintenance products. NAICS Direct groups common automotive distribution codes into one feed for parts houses, distributors, and resellers pursuing government fleet business.",
+    naicsCodes: [
+      { code: "423120", description: "Motor Vehicle Supplies and New Parts Merchant Wholesalers" },
+      { code: "423130", description: "Tire and Tube Merchant Wholesalers" },
+      { code: "441330", description: "Automotive Parts and Accessories Retailers" },
+    ],
+    benefits: ["Track recurring fleet supply demand", "Useful for parts distributors and dealers", "Find simplified commodity buys", "See set-aside and deadline information quickly"],
+    faqs: [
+      { q: "What agencies buy vehicle parts?", a: "DoD components, federal law-enforcement agencies, land-management agencies, and other fleet operators regularly purchase vehicle parts and maintenance supplies." },
+      { q: "Are brand-name parts common?", a: "Yes. Some solicitations specify OEM or approved-equivalent parts, so exact part numbers and substitution language must be checked carefully." },
+    ],
+    keywords: ["federal auto parts contracts", "government vehicle parts bids", "NAICS 423120", "SAM.gov fleet parts"],
+  },
+  "waste-services": {
+    slug: "waste-services",
+    title: "Federal Waste Collection Contracts | Government Trash Service Bids",
+    metaDescription: "Find active federal solid waste, trash collection, hauling, and related service contracts on SAM.gov.",
+    h1: "Federal Waste & Collection Service Contracts",
+    subtitle: "Government bids for solid waste, trash collection, hauling, and related services",
+    intro: "Military installations, federal offices, parks, and other government facilities require recurring waste collection and hauling services. These contracts can provide multi-year recurring revenue and are often competed as small-business opportunities.",
+    naicsCodes: [
+      { code: "562111", description: "Solid Waste Collection" },
+      { code: "562119", description: "Other Waste Collection" },
+      { code: "562998", description: "All Other Miscellaneous Waste Management Services" },
+    ],
+    benefits: ["Surface recurring service contracts", "Track base-year plus option-year opportunities", "Identify location and equipment requirements early", "Filter by deadline and set-aside"],
+    faqs: [
+      { q: "Can a prime contractor subcontract waste collection?", a: "Sometimes, but the solicitation, licensing requirements, and any limitations on subcontracting must be reviewed before structuring the work that way." },
+      { q: "What should be checked first?", a: "Review container requirements, pickup frequency, disposal requirements, local permits, distance, insurance, and whether the contractor must provide equipment." },
+    ],
+    keywords: ["federal waste collection contracts", "government trash bids", "NAICS 562111", "SAM.gov waste services"],
+  },
+}
