@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
-import { nicheLimitForPriceId, NICHE_LOCK_DAYS } from "@/lib/plans"
+import { stripe } from "@/lib/stripe"
+import { nicheLimitForPriceId } from "@/lib/plans"
 import { PUBLIC_NICHES } from "@/lib/niches"
 import { getEntitlement } from "@/lib/entitlement"
+
+function parsePending(raw: string | undefined): string[] {
+  if (!raw) return []
+  return raw.split(",").map((v) => v.trim()).filter(Boolean)
+}
 
 export async function GET() {
   const session = await auth()
@@ -12,7 +18,23 @@ export async function GET() {
   }
 
   const entitlement = await getEntitlement(session.user.id)
-  return NextResponse.json(entitlement)
+  const sub = await prisma.subscription.findUnique({ where: { userId: session.user.id } })
+
+  let pendingNiches: string[] = []
+  if (sub?.stripeSubscriptionId && (sub.status === "trialing" || sub.status === "active")) {
+    try {
+      const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId)
+      pendingNiches = parsePending(stripeSub.metadata?.pending_niches)
+    } catch {
+      pendingNiches = []
+    }
+  }
+
+  return NextResponse.json({
+    ...entitlement,
+    pendingNiches,
+    billingPeriodEnd: sub?.stripeCurrentPeriodEnd?.toISOString() ?? null,
+  })
 }
 
 export async function POST(req: Request) {
@@ -39,7 +61,7 @@ export async function POST(req: Request) {
 
   if (sub.status !== "trialing" && sub.status !== "active") {
     return NextResponse.json(
-      { error: "Your subscription isn't active. Reactivate your plan to choose niches." },
+      { error: "Your subscription isn't active. Reactivate your plan to manage categories." },
       { status: 403 }
     )
   }
@@ -47,41 +69,72 @@ export async function POST(req: Request) {
   const nicheLimit = nicheLimitForPriceId(sub.stripePriceId)
   if (deduped.length > nicheLimit) {
     return NextResponse.json(
-      { error: `Your plan allows up to ${nicheLimit} niche${nicheLimit === 1 ? "" : "s"}. Upgrade to select more.` },
+      { error: `Your plan allows up to ${nicheLimit} categor${nicheLimit === 1 ? "y" : "ies"}. Upgrade to select more.` },
       { status: 403 }
     )
   }
 
-  const now = new Date()
-  const isFirstPick = sub.selectedNiches.length === 0
-  const isLocked = sub.nicheLockedUntil ? sub.nicheLockedUntil > now : false
-
-  // Pure additions (going from e.g. 1 chosen niche up to 3 after an upgrade, keeping the original)
-  // don't require the lock to have expired — you're not losing access to anything you already had.
-  const isPureAddition = sub.selectedNiches.every((existing) => deduped.includes(existing))
-
-  if (!isFirstPick && !isPureAddition && isLocked) {
-    return NextResponse.json(
-      {
-        error: `You can change your niches again on ${sub.nicheLockedUntil!.toISOString().slice(0, 10)}. Need it sooner? Email support with a reason and we'll take care of it.`,
-        nicheLockedUntil: sub.nicheLockedUntil!.toISOString(),
-      },
-      { status: 423 } // 423 Locked
-    )
+  if (!sub.stripeSubscriptionId) {
+    return NextResponse.json({ error: "Billing subscription is not linked yet." }, { status: 409 })
   }
 
-  const nicheLockedUntil = new Date(now.getTime() + NICHE_LOCK_DAYS * 24 * 60 * 60 * 1000)
+  const stripeSub = await stripe.subscriptions.retrieve(sub.stripeSubscriptionId)
+  const periodEnd = new Date(stripeSub.current_period_end * 1000)
+  const isFirstPick = sub.selectedNiches.length === 0
+  const isPureAddition = sub.selectedNiches.every((existing) => deduped.includes(existing))
 
-  const updated = await prisma.subscription.update({
+  // First selection is active immediately. Adding extra categories after a paid
+  // upgrade is also immediate, because the customer is paying for more access.
+  if (isFirstPick || isPureAddition) {
+    const updated = await prisma.subscription.update({
+      where: { userId: session.user.id },
+      data: {
+        selectedNiches: deduped,
+        nicheLockedUntil: periodEnd,
+        stripeCurrentPeriodEnd: periodEnd,
+      },
+    })
+
+    await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+      metadata: {
+        ...stripeSub.metadata,
+        pending_niches: "",
+        pending_niches_effective_at: "",
+      },
+    })
+
+    return NextResponse.json({
+      selectedNiches: updated.selectedNiches,
+      pendingNiches: [],
+      nicheLockedUntil: periodEnd.toISOString(),
+      billingPeriodEnd: periodEnd.toISOString(),
+      queued: false,
+    })
+  }
+
+  // Swaps/removals never change the current paid month. They are queued in Stripe
+  // metadata and become active only after the next billing cycle starts.
+  await stripe.subscriptions.update(sub.stripeSubscriptionId, {
+    metadata: {
+      ...stripeSub.metadata,
+      pending_niches: deduped.join(","),
+      pending_niches_effective_at: String(stripeSub.current_period_end),
+    },
+  })
+
+  await prisma.subscription.update({
     where: { userId: session.user.id },
     data: {
-      selectedNiches: deduped,
-      nicheLockedUntil,
+      nicheLockedUntil: periodEnd,
+      stripeCurrentPeriodEnd: periodEnd,
     },
   })
 
   return NextResponse.json({
-    selectedNiches: updated.selectedNiches,
-    nicheLockedUntil: updated.nicheLockedUntil?.toISOString() ?? null,
+    selectedNiches: sub.selectedNiches,
+    pendingNiches: deduped,
+    nicheLockedUntil: periodEnd.toISOString(),
+    billingPeriodEnd: periodEnd.toISOString(),
+    queued: true,
   })
 }
