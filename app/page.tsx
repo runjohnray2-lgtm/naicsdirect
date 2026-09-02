@@ -35,7 +35,7 @@ const PRICING = [
     name: "Business",
     price: 49,
     description: "For distributors and multi-niche resellers",
-    features: ["All 9 NAICS niches", "Live SAM.gov data, synced daily", "Deadline urgency alerts", "DIBBS bid unlock", "Dedicated support"],
+    features: ["All 15 NAICS niches", "Live SAM.gov data, synced daily", "Deadline urgency alerts", "DIBBS bid unlock", "Dedicated support"],
     cta: "Start Free Trial",
     highlighted: false,
   },
@@ -54,7 +54,7 @@ const HOW_IT_WORKS = [
   {
     step: "1",
     title: "Pick your industry",
-    desc: "Choose from 9 built-in niches — flooring, HVAC, janitorial, safety, and more. Each one maps to the exact NAICS codes that match what you actually sell.",
+    desc: "Choose from 15 built-in niches — flooring, HVAC, janitorial, safety, hardware, industrial equipment, office supplies, and more. Each one maps to the NAICS codes that match what you actually sell.",
   },
   {
     step: "2",
@@ -64,7 +64,7 @@ const HOW_IT_WORKS = [
   {
     step: "3",
     title: "Act before the deadline",
-    desc: "Color-coded urgency flags mean you find out the moment a real opportunity posts — and you know exactly what to bid.",
+    desc: "Color-coded urgency flags mean you find out the moment a real opportunity posts — and you know what needs attention first.",
   },
 ]
 
@@ -203,14 +203,13 @@ export default function LandingPage() {
             Stop paying $500/month for bids you&apos;ll never win. NAICS Direct shows you only the federal contracts in your exact niche — real SAM.gov data, updated daily.
           </p>
 
-          {/* Live proof, not just a claim */}
           <div className="inline-flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mb-10 px-5 py-3 rounded-full bg-slate-900/80 border border-slate-800 text-sm">
             <span className="flex items-center gap-2 text-white font-semibold">
               <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
               {stats ? stats.totalActiveBids.toLocaleString() : "…"} live open opportunities
             </span>
             <span className="text-slate-600 hidden sm:inline">•</span>
-            <span className="text-slate-400">across 9 industries</span>
+            <span className="text-slate-400">across {PUBLIC_NICHES.length} industries</span>
             <span className="text-slate-600 hidden sm:inline">•</span>
             <span className="text-slate-400">last synced {stats ? timeAgo(stats.lastSyncedAt) : "…"}</span>
           </div>
@@ -233,7 +232,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it works — 3 steps */}
       <section className="py-16 border-t border-slate-800/60">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-12">
@@ -256,7 +254,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Founder note — real name/identity for E-E-A-T (authenticity signal), not marketing copy */}
       <section className="pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row gap-5 items-start">
@@ -266,10 +263,9 @@ export default function LandingPage() {
             <div>
               <p className="text-slate-300 leading-relaxed">
                 <span className="text-white font-semibold">Why I built this:</span> I run Radiantz LED Lighting, a small
-                manufacturer and government contractor bidding on federal and state contracts through SAM.gov, DIBBS, and GSA
-                Schedule. I got tired of digging through thousands of SAM.gov listings that had nothing to do with what I
-                actually sell. So I built the filter I wished existed — and decided to open it up for other small contractors
-                dealing with the exact same noise.
+                manufacturer and government contractor bidding on federal and state contracts through SAM.gov and DIBBS.
+                I got tired of digging through thousands of SAM.gov listings that had nothing to do with what I actually sell.
+                So I built the filter I wished existed — and decided to open it up for other small contractors dealing with the exact same noise.
               </p>
               <p className="text-white text-sm font-semibold mt-3">Ray Runyan</p>
               <p className="text-slate-500 text-sm">Founder, NAICS Direct &middot; Owner, Radiantz LED Lighting, Inc.</p>
@@ -278,7 +274,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Free sample preview — no signup wall, proves the filtering actually works */}
       <section id="live" className="py-16 border-t border-slate-800/60">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-8">
@@ -401,7 +396,6 @@ export default function LandingPage() {
             ))}
           </div>
 
-          {/* Request a niche */}
           <div className="max-w-xl mx-auto mt-12">
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-6 text-center">
               <h3 className="text-white font-semibold mb-1">Don&apos;t see your niche?</h3>
