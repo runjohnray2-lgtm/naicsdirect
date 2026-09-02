@@ -6,7 +6,7 @@ import PricingCard from "@/components/pricing-card"
 export const metadata = {
   title: "Pricing — NAICS Direct",
   description:
-    "Start with a 3-day free trial. Real SAM.gov data filtered to your exact NAICS code.",
+    "Find federal contract opportunities early enough to source, quote, and bid. Daily SAM.gov data, urgency filters, and historical award intelligence.",
 }
 
 export default async function PricingPage({
@@ -67,12 +67,17 @@ export default async function PricingPage({
             3-day free trial on all plans
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
-            Simple, Transparent Pricing
+            Find the Bid Early. Use the Time to Win It.
           </h1>
-          <p className="text-lg text-slate-400 max-w-xl mx-auto">
-            Stop scrolling thousands of contracts that have nothing to do with
-            your business. Start your free trial — card required, charged after
-            3 days.
+          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+            Government bids take time. Suppliers take time. Subcontractors take
+            time. NAICS Direct cuts through thousands of unrelated notices so
+            you can find real opportunities sooner and start sourcing before the
+            deadline becomes the problem.
+          </p>
+          <p className="text-sm text-slate-500 mt-5">
+            Focused federal opportunity feeds • urgency filtering • historical
+            award intelligence
           </p>
         </div>
       </div>
@@ -89,23 +94,58 @@ export default async function PricingPage({
           ))}
         </div>
 
+        {/* Why it matters */}
+        <div className="mt-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">
+              Built for the Real Bid Timeline
+            </h2>
+            <p className="text-sm text-slate-500 max-w-2xl mx-auto">
+              The advantage is not seeing more listings. It is finding the right
+              opportunity early enough to research pricing, contact suppliers,
+              line up subcontractors, and submit a compliant bid.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+            {[
+              {
+                title: "Find Earlier",
+                desc: "Daily SAM.gov opportunity data organized into focused NAICS niches instead of one giant search result.",
+              },
+              {
+                title: "Research Faster",
+                desc: "Use urgency filters and historical federal award intelligence to decide what deserves your time.",
+              },
+              {
+                title: "Build a Pipeline",
+                desc: "Track multiple categories so you are not depending on one supplier reply or one government solicitation.",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="bg-slate-900 border border-slate-800 rounded-xl p-6"
+              >
+                <p className="text-sm font-semibold text-white mb-1">{item.title}</p>
+                <p className="text-xs text-slate-500">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Trust signals */}
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
           {[
             {
-              icon: "lock",
               title: "Cancel Anytime",
-              desc: "No contracts, no lock-in. Cancel from your account dashboard instantly.",
+              desc: "No contracts, no lock-in. Cancel from your account dashboard.",
             },
             {
-              icon: "card",
-              title: "Card Required After Trial",
-              desc: "Enter card now — you won't be charged for 3 days.",
+              title: "3 Days Free",
+              desc: "Enter your card now. Cancel before the trial ends and you will not be charged.",
             },
             {
-              icon: "data",
-              title: "Real SAM.gov Data",
-              desc: "Pulled directly from federal procurement systems and refreshed daily.",
+              title: "Real Federal Data",
+              desc: "SAM.gov opportunities are refreshed daily. Historical award research uses federal award data.",
             },
           ].map((item) => (
             <div
@@ -132,11 +172,19 @@ export default async function PricingPage({
             },
             {
               q: "What is a NAICS niche?",
-              a: "A curated cluster of related NAICS codes — for example, all flooring contracts (NAICS 238330, 442210, 314110) bundled into one clean alert feed.",
+              a: "A focused group of related NAICS codes that turns a broad federal opportunity search into a cleaner feed for the type of work or products you actually pursue.",
             },
             {
-              q: "How often is the data updated?",
-              a: "SAM.gov data is refreshed every morning. Pro and Business subscribers get same-day alerts when new solicitations post.",
+              q: "Why does finding a bid early matter?",
+              a: "Because a usable quote may require supplier pricing, subcontractor availability, financing checks, compliance research, and time for questions. More lead time gives you more options.",
+            },
+            {
+              q: "What is historical award intelligence?",
+              a: "Past federal contract award information can help you research who has won similar work and the historical contract value. Historical totals are context, not a guaranteed future price or unit price.",
+            },
+            {
+              q: "How often is the opportunity data updated?",
+              a: "SAM.gov opportunity data is refreshed every morning. Use the urgency filters to separate closing-soon notices from opportunities with enough time to pursue properly.",
             },
             {
               q: "Can I change plans?",
