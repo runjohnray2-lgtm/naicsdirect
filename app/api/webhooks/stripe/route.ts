@@ -2,7 +2,13 @@ import { NextResponse } from "next/server"
 import { headers } from "next/headers"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/db"
+import { nicheLimitForPriceId } from "@/lib/plans"
 import type Stripe from "stripe"
+
+function parsePending(raw: string | undefined): string[] {
+  if (!raw) return []
+  return raw.split(",").map((v) => v.trim()).filter(Boolean)
+}
 
 export async function POST(req: Request) {
   const body = await req.text()
@@ -36,6 +42,7 @@ export async function POST(req: Request) {
         const subscription = await stripe.subscriptions.retrieve(
           session.subscription as string
         )
+        const periodEnd = new Date(subscription.current_period_end * 1000)
 
         await prisma.subscription.upsert({
           where: { userId },
@@ -44,7 +51,8 @@ export async function POST(req: Request) {
             stripeCustomerId: session.customer as string,
             stripeSubscriptionId: subscription.id,
             stripePriceId: subscription.items.data[0].price.id,
-            stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            stripeCurrentPeriodEnd: periodEnd,
+            nicheLockedUntil: periodEnd,
             status: subscription.status,
             trialEnd: subscription.trial_end
               ? new Date(subscription.trial_end * 1000)
@@ -53,7 +61,8 @@ export async function POST(req: Request) {
           update: {
             stripeSubscriptionId: subscription.id,
             stripePriceId: subscription.items.data[0].price.id,
-            stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            stripeCurrentPeriodEnd: periodEnd,
+            nicheLockedUntil: periodEnd,
             status: subscription.status,
             trialEnd: subscription.trial_end
               ? new Date(subscription.trial_end * 1000)
@@ -68,17 +77,43 @@ export async function POST(req: Request) {
         const userId = subscription.metadata?.userId
         if (!userId) break
 
+        const periodEnd = new Date(subscription.current_period_end * 1000)
+        const pending = parsePending(subscription.metadata?.pending_niches)
+        const effectiveAt = Number(subscription.metadata?.pending_niches_effective_at || 0)
+        const newCycleHasStarted =
+          pending.length > 0 &&
+          effectiveAt > 0 &&
+          subscription.current_period_start >= effectiveAt
+
+        const priceId = subscription.items.data[0].price.id
+        const nicheLimit = nicheLimitForPriceId(priceId)
+        const selectedForNewCycle = newCycleHasStarted
+          ? pending.slice(0, nicheLimit)
+          : undefined
+
         await prisma.subscription.update({
           where: { userId },
           data: {
-            stripePriceId: subscription.items.data[0].price.id,
-            stripeCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            stripePriceId: priceId,
+            stripeCurrentPeriodEnd: periodEnd,
+            nicheLockedUntil: periodEnd,
             status: subscription.status,
             trialEnd: subscription.trial_end
               ? new Date(subscription.trial_end * 1000)
               : null,
+            ...(selectedForNewCycle ? { selectedNiches: selectedForNewCycle } : {}),
           },
         })
+
+        if (newCycleHasStarted) {
+          await stripe.subscriptions.update(subscription.id, {
+            metadata: {
+              ...subscription.metadata,
+              pending_niches: "",
+              pending_niches_effective_at: "",
+            },
+          })
+        }
         break
       }
 
