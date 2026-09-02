@@ -33,7 +33,15 @@ export async function GET(req: Request) {
   let totalErrors = 0
   const summary: Record<string, number> = {}
 
-  for (const niche of NICHES) {
+  // Internal cross-category watchlists (currently Radiantz) are synced first.
+  // If a NAICS code also belongs to a public customer niche, the public niche
+  // runs later and becomes Bid.niche. The internal watchlist still works by
+  // querying its NAICS codes directly in /api/bids.
+  const syncNiches = [...NICHES].sort(
+    (a, b) => Number(a.public !== false) - Number(b.public !== false)
+  )
+
+  for (const niche of syncNiches) {
     let nicheCount = 0
     const seen = new Set<string>()
 
@@ -97,7 +105,6 @@ export async function GET(req: Request) {
     summary[niche.id] = nicheCount
   }
 
-  // Mark expired bids as inactive
   await prisma.bid.updateMany({
     where: {
       responseDeadline: { lt: new Date() },
@@ -106,15 +113,9 @@ export async function GET(req: Request) {
     data: { active: false },
   })
 
-  // Self-heal mismatched leftovers: bids whose stored naicsCode doesn't
-  // actually belong to the niche they're tagged under (e.g. synced during
-  // a past window where SAM's ncode filter was ignored, or a niche's
-  // naicsCodes list changed after the bid was written). Runs every sync so
-  // this never again depends on someone remembering to hit a one-off
-  // maintenance route by hand.
   let totalMismatchedDeactivated = 0
   const mismatchSummary: Record<string, number> = {}
-  for (const niche of NICHES) {
+  for (const niche of NICHES.filter((n) => n.public !== false)) {
     const result = await prisma.bid.updateMany({
       where: {
         niche: niche.id,
