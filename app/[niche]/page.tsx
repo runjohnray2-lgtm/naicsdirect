@@ -3,12 +3,17 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { NICHES, PUBLIC_NICHES } from "@/lib/niches"
 import { NICHE_SEO } from "@/lib/niche-seo"
+import { EXTRA_NICHE_SEO } from "@/lib/niche-seo-extra"
 import { prisma } from "@/lib/db"
 
-export const revalidate = 3600 // refresh dateModified hourly, not on every request
+export const revalidate = 3600
 
 interface Props {
   params: Promise<{ niche: string }>
+}
+
+function getNicheSEO(niche: string) {
+  return NICHE_SEO[niche] ?? EXTRA_NICHE_SEO[niche]
 }
 
 export async function generateStaticParams() {
@@ -17,7 +22,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { niche } = await params
-  const seo = NICHE_SEO[niche]
+  const seo = getNicheSEO(niche)
   if (!seo) return { title: "NAICS Direct" }
   return {
     title: seo.title,
@@ -44,15 +49,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function NicheLandingPage({ params }: Props) {
   const { niche } = await params
   const nicheData = NICHES.find((n) => n.id === niche)
-  const seo = NICHE_SEO[niche]
+  const seo = getNicheSEO(niche)
 
   if (!nicheData || !seo) notFound()
 
   const pageUrl = `https://naicsdirect.com/${niche}`
 
-  // Real freshness signal (not fabricated) — reflects the actual last time
-  // this niche's bids were synced from SAM.gov, so Google and AI answer
-  // engines can see the "daily-synced data" claim is genuinely current.
   let dateModified: string | undefined
   try {
     const lastSynced = await prisma.bid.findFirst({
@@ -117,7 +119,6 @@ export default async function NicheLandingPage({ params }: Props) {
       />
 
       <div className="min-h-screen bg-slate-950 text-slate-100">
-        {/* Nav */}
         <nav className="border-b border-slate-800 px-6 py-4">
           <div className="max-w-5xl mx-auto flex items-center justify-between">
             <Link href="/" className="text-xl font-bold text-indigo-400">
@@ -137,7 +138,6 @@ export default async function NicheLandingPage({ params }: Props) {
           </div>
         </nav>
 
-        {/* Breadcrumb (visible, matches BreadcrumbList JSON-LD above) */}
         <div className="max-w-5xl mx-auto px-6 pt-6">
           <nav aria-label="Breadcrumb" className="text-sm text-slate-500">
             <ol className="flex items-center gap-2">
@@ -154,14 +154,11 @@ export default async function NicheLandingPage({ params }: Props) {
           </nav>
         </div>
 
-        {/* Hero */}
         <section className="max-w-5xl mx-auto px-6 pt-10 pb-16">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-4xl">{nicheData.emoji}</span>
             <span
-              className={`text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full border ${
-                nicheData.bgClass
-              } ${nicheData.colorClass} ${nicheData.borderClass}`}
+              className={`text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full border ${nicheData.bgClass} ${nicheData.colorClass} ${nicheData.borderClass}`}
             >
               {nicheData.name}
             </span>
@@ -172,7 +169,7 @@ export default async function NicheLandingPage({ params }: Props) {
           <p className="text-xl text-slate-400 mb-8 max-w-3xl">{seo.subtitle}</p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              href="/dashboard"
+              href={`/dashboard?niche=${nicheData.id}`}
               className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
             >
               View Active {nicheData.name} Bids →
@@ -186,14 +183,12 @@ export default async function NicheLandingPage({ params }: Props) {
           </div>
         </section>
 
-        {/* Intro */}
         <section className="max-w-5xl mx-auto px-6 pb-12">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
             <p className="text-slate-300 text-lg leading-relaxed">{seo.intro}</p>
           </div>
         </section>
 
-        {/* NAICS Codes */}
         <section className="max-w-5xl mx-auto px-6 pb-16">
           <h2 className="text-2xl font-bold text-white mb-6">
             NAICS Codes for {nicheData.name} Contracts
@@ -204,9 +199,7 @@ export default async function NicheLandingPage({ params }: Props) {
                 key={code}
                 className={`flex items-start gap-4 bg-slate-900 border rounded-xl p-5 ${nicheData.borderClass}`}
               >
-                <div
-                  className={`text-2xl font-mono font-bold flex-shrink-0 ${nicheData.colorClass}`}
-                >
+                <div className={`text-2xl font-mono font-bold flex-shrink-0 ${nicheData.colorClass}`}>
                   {code}
                 </div>
                 <div>
@@ -220,7 +213,6 @@ export default async function NicheLandingPage({ params }: Props) {
           </div>
         </section>
 
-        {/* Benefits */}
         <section className="max-w-5xl mx-auto px-6 pb-16">
           <h2 className="text-2xl font-bold text-white mb-6">
             Why {nicheData.name} Contractors Use NAICS Direct
@@ -238,21 +230,20 @@ export default async function NicheLandingPage({ params }: Props) {
           </div>
         </section>
 
-        {/* CTA Banner */}
         <section className="max-w-5xl mx-auto px-6 pb-16">
           <div className="bg-indigo-600/20 border border-indigo-500/30 rounded-2xl p-10 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
               Ready to find your next {nicheData.name.toLowerCase()} contract?
             </h2>
             <p className="text-slate-400 mb-8 max-w-xl mx-auto">
-              NAICS Direct is free to use. Browse active {nicheData.name.toLowerCase()} bids right now — no account required.
+              Browse active {nicheData.name.toLowerCase()} opportunities and use the deadline to start sourcing before time becomes the problem.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/dashboard"
+                href={`/dashboard?niche=${nicheData.id}`}
                 className="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-3 rounded-xl transition-colors"
               >
-                Browse {nicheData.name} Bids Free
+                Browse {nicheData.name} Bids
               </Link>
               <Link
                 href="/#pricing"
@@ -264,7 +255,6 @@ export default async function NicheLandingPage({ params }: Props) {
           </div>
         </section>
 
-        {/* FAQ */}
         <section className="max-w-5xl mx-auto px-6 pb-20">
           <h2 className="text-2xl font-bold text-white mb-8">
             Frequently Asked Questions
@@ -279,11 +269,10 @@ export default async function NicheLandingPage({ params }: Props) {
           </div>
         </section>
 
-        {/* Footer */}
         <footer className="border-t border-slate-800 px-6 py-8">
           <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-slate-500 text-sm">
-              © 2026 NAICS Direct · All federal bid data sourced from SAM.gov
+              © 2026 NAICS Direct · Federal opportunity data sourced from SAM.gov
             </div>
             <div className="flex gap-6 text-sm text-slate-500">
               {PUBLIC_NICHES.filter((n) => n.id !== niche).slice(0, 5).map((n) => (
