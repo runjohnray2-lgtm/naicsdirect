@@ -36,15 +36,15 @@ export const PLANS = [
     name: "Business",
     price: 49,
     interval: "month",
-    description: "For teams and established contractors winning big",
+    description: "For teams, distributors, and multi-category contractors",
     features: [
-      "All 9 NAICS niches",
+      "All 15 NAICS niches",
       "Live SAM.gov data, synced daily",
       "Urgency filtering (closing soon, this week, open)",
       "Dedicated support",
     ] as string[],
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS ?? "",
-    nicheLimit: 9,
+    nicheLimit: 15,
     cta: "Start Free Trial",
   },
 ] as const
