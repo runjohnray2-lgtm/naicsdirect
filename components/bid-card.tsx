@@ -1,11 +1,24 @@
 "use client"
 
 import Link from "next/link"
+import { useState } from "react"
+import { useSession } from "next-auth/react"
 import { Bid } from "@/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, Building, ExternalLink, AlertCircle, Lock } from "lucide-react"
+import {
+  Calendar,
+  Building,
+  ExternalLink,
+  AlertCircle,
+  Lock,
+  Eye,
+  Crosshair,
+  XCircle,
+  Loader2,
+  Check,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { differenceInDays, parseISO } from "date-fns"
 
@@ -14,6 +27,8 @@ interface BidCardProps {
   /** True when this bid's details should be teased/blurred behind a signup wall. */
   locked?: boolean
 }
+
+type Decision = "WATCH" | "PURSUE" | "PASS"
 
 function getDaysUntil(dateStr: string): number | null {
   if (!dateStr) return null
@@ -27,31 +42,26 @@ function getDaysUntil(dateStr: string): number | null {
 function urgencyConfig(days: number | null) {
   if (days === null) return {
     label: "No Deadline",
-    textClass: "text-slate-400",
     badgeClass: "bg-slate-500/10 border-slate-500/20 text-slate-400",
     cardBorderClass: "border-l-slate-700",
   }
   if (days < 0) return {
     label: "Closed",
-    textClass: "text-slate-500",
     badgeClass: "bg-slate-500/10 border-slate-500/20 text-slate-500",
     cardBorderClass: "border-l-slate-700",
   }
   if (days <= 2) return {
     label: `${days}d left`,
-    textClass: "text-red-400",
     badgeClass: "bg-red-500/10 border-red-500/30 text-red-400",
     cardBorderClass: "border-l-red-500",
   }
   if (days <= 7) return {
     label: `${days}d left`,
-    textClass: "text-amber-400",
     badgeClass: "bg-amber-500/10 border-amber-500/30 text-amber-400",
     cardBorderClass: "border-l-amber-500",
   }
   return {
     label: `${days}d left`,
-    textClass: "text-emerald-400",
     badgeClass: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
     cardBorderClass: "border-l-emerald-500",
   }
@@ -70,6 +80,11 @@ function typeConfig(code: string) {
 }
 
 export function BidCard({ bid, locked = false }: BidCardProps) {
+  const { status } = useSession()
+  const [savingDecision, setSavingDecision] = useState<Decision | null>(null)
+  const [savedDecision, setSavedDecision] = useState<Decision | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
   const days = getDaysUntil(bid.responseDate)
   const urgency = urgencyConfig(days)
   const samUrl = `https://sam.gov/opp/${bid.id}/view`
@@ -84,14 +99,32 @@ export function BidCard({ bid, locked = false }: BidCardProps) {
     }
   } catch {}
 
+  async function saveDecision(decision: Decision) {
+    setSaveError(null)
+    setSavingDecision(decision)
+    try {
+      const response = await fetch("/api/pursuits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bidId: bid.id, decision }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || "Could not save this bid")
+      setSavedDecision(decision)
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Could not save this bid")
+    } finally {
+      setSavingDecision(null)
+    }
+  }
+
   return (
     <Card
       className={cn(
         "bg-slate-900 border-slate-800 transition-all duration-200 border-l-4",
         urgency.cardBorderClass,
-        !isLockedDibbs && "hover:border-slate-600 group cursor-pointer"
+        !isLockedDibbs && "hover:border-slate-600 group"
       )}
-      onClick={() => { if (!isLockedDibbs) window.open(samUrl, "_blank") }}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
@@ -107,12 +140,14 @@ export function BidCard({ bid, locked = false }: BidCardProps) {
                 {days !== null && days >= 0 && days <= 2 && <AlertCircle className="w-3 h-3 mr-1 inline" />}
                 {isLockedDibbs ? "Urgency locked" : urgency.label}
               </Badge>
+              {savedDecision && (
+                <Badge className="text-xs border px-2 py-0.5 bg-indigo-500/10 text-indigo-300 border-indigo-500/30">
+                  <Check className="w-3 h-3 mr-1" /> {savedDecision === "PURSUE" ? "Pursuing" : savedDecision === "WATCH" ? "Watching" : "Passed"}
+                </Badge>
+              )}
             </div>
 
-            <h3 className={cn(
-              "text-white font-medium text-sm leading-snug mb-2 line-clamp-2 transition-colors",
-              !isLockedDibbs && "group-hover:text-indigo-300"
-            )}>
+            <h3 className="text-white font-medium text-sm leading-snug mb-2 line-clamp-2">
               {bid.title}
             </h3>
 
@@ -145,7 +180,7 @@ export function BidCard({ bid, locked = false }: BidCardProps) {
             )}
 
             {isLockedDibbs ? (
-              <div className="mt-2.5 flex flex-wrap items-center gap-2" onClick={e => e.stopPropagation()}>
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
                 <Button
                   size="sm"
                   className="h-7 text-xs bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border border-orange-500/30 gap-1.5"
@@ -157,34 +192,78 @@ export function BidCard({ bid, locked = false }: BidCardProps) {
                 </Button>
               </div>
             ) : (
-              bid.isDibbs && (
-                <p className="text-orange-400/80 text-xs mt-1.5">
-                  Submit via dibbs.bsm.dla.mil (requires{" "}
-                  <a
-                    href="https://www.dibbs.bsm.dla.mil/Registration/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:text-orange-300"
-                    onClick={e => e.stopPropagation()}
+              <>
+                {bid.isDibbs && (
+                  <p className="text-orange-400/80 text-xs mt-1.5">
+                    Submit via dibbs.bsm.dla.mil (requires{" "}
+                    <a
+                      href="https://www.dibbs.bsm.dla.mil/Registration/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-orange-300"
+                    >
+                      free CAGE PIN registration
+                    </a>
+                    )
+                  </p>
+                )}
+
+                <div className="mt-3 pt-3 border-t border-slate-800 flex flex-wrap items-center gap-2">
+                  {status === "authenticated" ? (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs border-slate-700 text-slate-300 hover:bg-slate-800 gap-1.5"
+                        disabled={savingDecision !== null}
+                        onClick={() => saveDecision("WATCH")}
+                      >
+                        {savingDecision === "WATCH" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Eye className="w-3 h-3" />}
+                        Watch
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500 text-white gap-1.5"
+                        disabled={savingDecision !== null}
+                        onClick={() => saveDecision("PURSUE")}
+                      >
+                        {savingDecision === "PURSUE" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crosshair className="w-3 h-3" />}
+                        Pursue
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 text-xs text-slate-500 hover:text-slate-300 hover:bg-slate-800 gap-1.5"
+                        disabled={savingDecision !== null}
+                        onClick={() => saveDecision("PASS")}
+                      >
+                        {savingDecision === "PASS" ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
+                        Pass
+                      </Button>
+                      {savedDecision === "PURSUE" && (
+                        <Button size="sm" variant="ghost" className="h-7 text-xs text-indigo-300 hover:text-white" asChild>
+                          <Link href="/pursuits">Open workspace →</Link>
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <Button size="sm" className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500" asChild>
+                      <Link href="/auth/signin">Sign in to Watch or Pursue</Link>
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-xs text-slate-500 hover:text-indigo-300 ml-auto gap-1.5"
+                    onClick={() => window.open(samUrl, "_blank")}
                   >
-                    free CAGE PIN registration
-                  </a>
-                  )
-                </p>
-              )
+                    SAM.gov <ExternalLink className="w-3 h-3" />
+                  </Button>
+                </div>
+                {saveError && <p className="text-red-400 text-xs mt-2">{saveError}</p>}
+              </>
             )}
           </div>
-
-          {!isLockedDibbs && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-slate-600 group-hover:text-indigo-400 group-hover:bg-indigo-500/10 flex-shrink-0 p-1.5 h-auto"
-              onClick={e => { e.stopPropagation(); window.open(samUrl, "_blank") }}
-            >
-              <ExternalLink className="w-4 h-4" />
-            </Button>
-          )}
         </div>
       </CardContent>
     </Card>
