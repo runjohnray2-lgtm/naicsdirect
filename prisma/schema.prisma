@@ -105,23 +105,28 @@ model Bid {
 }
 
 model Pursuit {
-  id                    String              @id @default(cuid())
-  userId                String
-  bidId                 String
-  decision              String              @default("WATCH")
-  stage                 String              @default("REVIEWING")
-  priority              String              @default("NORMAL")
-  notes                 String?
-  nextAction            String?
-  questionDeadline      DateTime?
-  supplierQuoteDeadline DateTime?
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
-  user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bid                    Bid                 @relation(fields: [bidId], references: [id], onDelete: Cascade)
-  suppliers              SupplierCandidate[]
-  estimate               PursuitEstimate?
-  quotes                 QuoteDraft[]
+  id                             String              @id @default(cuid())
+  userId                         String
+  bidId                          String
+  decision                       String              @default("WATCH")
+  stage                          String              @default("REVIEWING")
+  priority                       String              @default("NORMAL")
+  notes                          String?
+  nextAction                     String?
+  supplierScope                  String?
+  scopeReviewed                  Boolean             @default(false)
+  complianceReviewed             Boolean             @default(false)
+  submissionInstructionsReviewed Boolean             @default(false)
+  amendmentsChecked              Boolean             @default(false)
+  questionDeadline               DateTime?
+  supplierQuoteDeadline          DateTime?
+  createdAt                      DateTime            @default(now())
+  updatedAt                      DateTime            @updatedAt
+  user                           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bid                            Bid                 @relation(fields: [bidId], references: [id], onDelete: Cascade)
+  suppliers                      SupplierCandidate[]
+  estimate                       PursuitEstimate?
+  quotes                         QuoteDraft[]
 
   @@unique([userId, bidId])
   @@index([userId, decision])
@@ -153,20 +158,20 @@ model SupplierCandidate {
 }
 
 model PursuitEstimate {
-  id              String   @id @default(cuid())
-  pursuitId       String   @unique
-  supplierCost    Float    @default(0)
-  freightCost     Float    @default(0)
-  laborCost       Float    @default(0)
-  financingCost   Float    @default(0)
-  contingencyCost Float    @default(0)
-  otherCost       Float    @default(0)
-  targetMarginPct Float    @default(20)
-  recommendedPrice Float   @default(0)
-  internalNotes   String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  pursuit         Pursuit  @relation(fields: [pursuitId], references: [id], onDelete: Cascade)
+  id               String   @id @default(cuid())
+  pursuitId        String   @unique
+  supplierCost     Float    @default(0)
+  freightCost      Float    @default(0)
+  laborCost        Float    @default(0)
+  financingCost    Float    @default(0)
+  contingencyCost  Float    @default(0)
+  otherCost        Float    @default(0)
+  targetMarginPct  Float    @default(20)
+  recommendedPrice Float    @default(0)
+  internalNotes    String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  pursuit          Pursuit  @relation(fields: [pursuitId], references: [id], onDelete: Cascade)
 }
 
 model QuoteDraft {
