@@ -10,6 +10,17 @@ function stageForDecision(decision: string) {
   return "WATCHING"
 }
 
+const pursuitInclude = {
+  bid: true,
+  suppliers: {
+    orderBy: [
+      { status: "asc" as const },
+      { distanceMiles: "asc" as const },
+      { createdAt: "asc" as const },
+    ],
+  },
+}
+
 export async function GET() {
   const session = await auth()
   if (!session?.user?.id) {
@@ -18,7 +29,7 @@ export async function GET() {
 
   const pursuits = await prisma.pursuit.findMany({
     where: { userId: session.user.id },
-    include: { bid: true },
+    include: pursuitInclude,
     orderBy: [
       { decision: "asc" },
       { bid: { responseDeadline: "asc" } },
@@ -69,7 +80,7 @@ export async function POST(req: Request) {
         ? { nextAction: "Review solicitation requirements and sourcing path" }
         : {}),
     },
-    include: { bid: true },
+    include: pursuitInclude,
   })
 
   return NextResponse.json({ pursuit })
