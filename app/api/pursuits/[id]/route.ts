@@ -79,7 +79,12 @@ export async function PATCH(
   const pursuit = await prisma.pursuit.update({
     where: { id },
     data,
-    include: { bid: true },
+    include: {
+      bid: true,
+      suppliers: {
+        orderBy: [{ status: "asc" }, { distanceMiles: "asc" }, { createdAt: "asc" }],
+      },
+    },
   })
 
   return NextResponse.json({ pursuit })
