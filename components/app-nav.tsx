@@ -3,11 +3,12 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { Crosshair, LayoutDashboard, UserRound, CreditCard } from "lucide-react"
+import { Crosshair, LayoutDashboard, UserRound, CreditCard, SlidersHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const links = [
   { href: "/dashboard", label: "Bid Feed", icon: LayoutDashboard },
+  { href: "/categories", label: "My Categories", icon: SlidersHorizontal },
   { href: "/pursuits", label: "My Pursuits", icon: Crosshair },
   { href: "/pricing", label: "Plans", icon: CreditCard },
   { href: "/account", label: "Account", icon: UserRound },
@@ -27,7 +28,7 @@ export default function AppNav() {
 
         <nav className="flex-1 flex items-center gap-1 overflow-x-auto scrollbar-hide">
           {links.map(({ href, label, icon: Icon }) => {
-            if (status !== "authenticated" && (href === "/pursuits" || href === "/account")) return null
+            if (status !== "authenticated" && (href === "/pursuits" || href === "/categories" || href === "/account")) return null
             const active = pathname === href || (href === "/pursuits" && pathname.startsWith("/pursuits/"))
             return (
               <Link
