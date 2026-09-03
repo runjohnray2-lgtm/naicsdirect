@@ -16,11 +16,44 @@ const VALID_STAGES = new Set([
 
 const VALID_PRIORITIES = new Set(["LOW", "NORMAL", "HIGH"])
 
+const detailInclude = {
+  bid: true,
+  suppliers: {
+    orderBy: [{ status: "asc" as const }, { distanceMiles: "asc" as const }, { createdAt: "asc" as const }],
+  },
+  estimate: true,
+  quotes: {
+    orderBy: { version: "desc" as const },
+  },
+}
+
 function parseOptionalDate(value: unknown) {
   if (value === null || value === "") return null
   if (typeof value !== "string") return undefined
   const parsed = new Date(value)
   return Number.isNaN(parsed.getTime()) ? undefined : parsed
+}
+
+export async function GET(
+  _req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { id } = await context.params
+  const pursuit = await prisma.pursuit.findFirst({
+    where: { id, userId: session.user.id },
+    include: detailInclude,
+  })
+
+  if (!pursuit) {
+    return NextResponse.json({ error: "Pursuit not found" }, { status: 404 })
+  }
+
+  return NextResponse.json({ pursuit })
 }
 
 export async function PATCH(
@@ -79,12 +112,7 @@ export async function PATCH(
   const pursuit = await prisma.pursuit.update({
     where: { id },
     data,
-    include: {
-      bid: true,
-      suppliers: {
-        orderBy: [{ status: "asc" }, { distanceMiles: "asc" }, { createdAt: "asc" }],
-      },
-    },
+    include: detailInclude,
   })
 
   return NextResponse.json({ pursuit })
