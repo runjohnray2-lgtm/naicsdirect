@@ -24,7 +24,7 @@ import { differenceInDays, parseISO } from "date-fns"
 
 interface BidCardProps {
   bid: Bid
-  /** True when this bid's details should be teased/blurred behind a signup wall. */
+  /** Used for anonymous DIBBS details. Free-preview locking is carried on bid.previewLocked. */
   locked?: boolean
 }
 
@@ -99,6 +99,44 @@ export function BidCard({ bid, locked = false }: BidCardProps) {
     }
   } catch {}
 
+  if (bid.previewLocked) {
+    return (
+      <Card className="relative overflow-hidden bg-slate-900 border-slate-800 border-l-4 border-l-slate-700">
+        <CardContent className="relative p-4 min-h-[178px]">
+          <div aria-hidden="true" className="space-y-3 opacity-45 select-none pointer-events-none">
+            <div className="flex gap-2">
+              <div className="h-5 w-24 rounded-full bg-slate-700" />
+              <div className="h-5 w-20 rounded-full bg-slate-700" />
+            </div>
+            <div className="h-4 w-4/5 rounded bg-slate-700" />
+            <div className="h-4 w-2/3 rounded bg-slate-800" />
+            <div className="space-y-2 pt-1">
+              <div className="h-3 w-36 rounded bg-slate-800" />
+              <div className="h-3 w-52 rounded bg-slate-800" />
+              <div className="h-3 w-44 rounded bg-slate-800" />
+            </div>
+          </div>
+
+          <div className="absolute inset-0 bg-slate-950/72 backdrop-blur-[1px] flex items-center justify-center p-4">
+            <div className="text-center max-w-sm">
+              <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto mb-2">
+                <Lock className="w-4 h-4 text-slate-300" />
+              </div>
+              <p className="text-white text-sm font-semibold">More live opportunities are available</p>
+              <p className="text-slate-400 text-xs mt-1">
+                {days !== null && days >= 0 ? `Another opportunity closes in about ${days} day${days === 1 ? "" : "s"}. ` : ""}
+                Subscribe to reveal the agency, solicitation, scope, and pursuit tools.
+              </p>
+              <Button size="sm" className="mt-3 h-8 bg-indigo-600 hover:bg-indigo-500" asChild>
+                <Link href="/pricing">Unlock Full Bid Feed</Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   async function saveDecision(decision: Decision) {
     setSaveError(null)
     setSavingDecision(decision)
@@ -132,9 +170,7 @@ export function BidCard({ bid, locked = false }: BidCardProps) {
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <Badge className={cn("text-xs border px-2 py-0.5", typeConfig(bid.typeCode))}>{bid.type}</Badge>
               {bid.isDibbs && (
-                <Badge className="text-xs border px-2 py-0.5 font-semibold bg-orange-500/20 text-orange-300 border-orange-500/30">
-                  DIBBS
-                </Badge>
+                <Badge className="text-xs border px-2 py-0.5 font-semibold bg-orange-500/20 text-orange-300 border-orange-500/30">DIBBS</Badge>
               )}
               <Badge className={cn("text-xs border px-2 py-0.5 font-semibold", urgency.badgeClass)}>
                 {days !== null && days >= 0 && days <= 2 && <AlertCircle className="w-3 h-3 mr-1 inline" />}
@@ -147,48 +183,26 @@ export function BidCard({ bid, locked = false }: BidCardProps) {
               )}
             </div>
 
-            <h3 className="text-white font-medium text-sm leading-snug mb-2 line-clamp-2">
-              {bid.title}
-            </h3>
+            <h3 className="text-white font-medium text-sm leading-snug mb-2 line-clamp-2">{bid.title}</h3>
 
             {isLockedDibbs ? (
               <div className="space-y-1.5">
                 <p className="text-slate-600 text-xs font-mono blur-[3px] select-none">Sol# ████-██-█-████</p>
-                <div className="flex items-center gap-1.5 text-slate-600 text-xs blur-[3px] select-none">
-                  <Building className="w-3 h-3 flex-shrink-0" />
-                  <span>██████ ███████ █████</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-slate-600 text-xs blur-[3px] select-none">
-                  <Calendar className="w-3 h-3 flex-shrink-0" />
-                  <span>Due: ██████ ██, ████</span>
-                </div>
+                <div className="flex items-center gap-1.5 text-slate-600 text-xs blur-[3px] select-none"><Building className="w-3 h-3 flex-shrink-0" /><span>██████ ███████ █████</span></div>
+                <div className="flex items-center gap-1.5 text-slate-600 text-xs blur-[3px] select-none"><Calendar className="w-3 h-3 flex-shrink-0" /><span>Due: ██████ ██, ████</span></div>
               </div>
             ) : (
               <div className="space-y-1">
-                {bid.solicitationNumber && (
-                  <p className="text-slate-500 text-xs font-mono tracking-tight">Sol# {bid.solicitationNumber}</p>
-                )}
-                <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                  <Building className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{bid.subAgency || bid.agency}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                  <Calendar className="w-3 h-3 flex-shrink-0" />
-                  <span>Due: {formattedDate}</span>
-                </div>
+                {bid.solicitationNumber && <p className="text-slate-500 text-xs font-mono tracking-tight">Sol# {bid.solicitationNumber}</p>}
+                <div className="flex items-center gap-1.5 text-slate-400 text-xs"><Building className="w-3 h-3 flex-shrink-0" /><span className="truncate">{bid.subAgency || bid.agency}</span></div>
+                <div className="flex items-center gap-1.5 text-slate-400 text-xs"><Calendar className="w-3 h-3 flex-shrink-0" /><span>Due: {formattedDate}</span></div>
               </div>
             )}
 
             {isLockedDibbs ? (
               <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                <Button
-                  size="sm"
-                  className="h-7 text-xs bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border border-orange-500/30 gap-1.5"
-                  asChild
-                >
-                  <Link href="/auth/signin">
-                    <Lock className="w-3 h-3" /> Unlock DIBBS Details — Free
-                  </Link>
+                <Button size="sm" className="h-7 text-xs bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border border-orange-500/30 gap-1.5" asChild>
+                  <Link href="/auth/signin"><Lock className="w-3 h-3" /> Unlock DIBBS Details — Free</Link>
                 </Button>
               </div>
             ) : (
@@ -196,67 +210,28 @@ export function BidCard({ bid, locked = false }: BidCardProps) {
                 {bid.isDibbs && (
                   <p className="text-orange-400/80 text-xs mt-1.5">
                     Submit via dibbs.bsm.dla.mil (requires{" "}
-                    <a
-                      href="https://www.dibbs.bsm.dla.mil/Registration/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline hover:text-orange-300"
-                    >
-                      free CAGE PIN registration
-                    </a>
-                    )
+                    <a href="https://www.dibbs.bsm.dla.mil/Registration/" target="_blank" rel="noopener noreferrer" className="underline hover:text-orange-300">free CAGE PIN registration</a>)
                   </p>
                 )}
 
                 <div className="mt-3 pt-3 border-t border-slate-800 flex flex-wrap items-center gap-2">
                   {status === "authenticated" ? (
                     <>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-xs border-slate-700 text-slate-300 hover:bg-slate-800 gap-1.5"
-                        disabled={savingDecision !== null}
-                        onClick={() => saveDecision("WATCH")}
-                      >
-                        {savingDecision === "WATCH" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Eye className="w-3 h-3" />}
-                        Watch
+                      <Button size="sm" variant="outline" className="h-7 text-xs border-slate-700 text-slate-300 hover:bg-slate-800 gap-1.5" disabled={savingDecision !== null} onClick={() => saveDecision("WATCH")}>
+                        {savingDecision === "WATCH" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Eye className="w-3 h-3" />} Watch
                       </Button>
-                      <Button
-                        size="sm"
-                        className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500 text-white gap-1.5"
-                        disabled={savingDecision !== null}
-                        onClick={() => saveDecision("PURSUE")}
-                      >
-                        {savingDecision === "PURSUE" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crosshair className="w-3 h-3" />}
-                        Pursue
+                      <Button size="sm" className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500 text-white gap-1.5" disabled={savingDecision !== null} onClick={() => saveDecision("PURSUE")}>
+                        {savingDecision === "PURSUE" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Crosshair className="w-3 h-3" />} Pursue
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 text-xs text-slate-500 hover:text-slate-300 hover:bg-slate-800 gap-1.5"
-                        disabled={savingDecision !== null}
-                        onClick={() => saveDecision("PASS")}
-                      >
-                        {savingDecision === "PASS" ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
-                        Pass
+                      <Button size="sm" variant="ghost" className="h-7 text-xs text-slate-500 hover:text-slate-300 hover:bg-slate-800 gap-1.5" disabled={savingDecision !== null} onClick={() => saveDecision("PASS")}>
+                        {savingDecision === "PASS" ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />} Pass
                       </Button>
-                      {savedDecision === "PURSUE" && (
-                        <Button size="sm" variant="ghost" className="h-7 text-xs text-indigo-300 hover:text-white" asChild>
-                          <Link href="/pursuits">Open workspace →</Link>
-                        </Button>
-                      )}
+                      {savedDecision === "PURSUE" && <Button size="sm" variant="ghost" className="h-7 text-xs text-indigo-300 hover:text-white" asChild><Link href="/pursuits">Open workspace →</Link></Button>}
                     </>
                   ) : (
-                    <Button size="sm" className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500" asChild>
-                      <Link href="/auth/signin">Sign in to Watch or Pursue</Link>
-                    </Button>
+                    <Button size="sm" className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500" asChild><Link href="/auth/signin">Sign in to Watch or Pursue</Link></Button>
                   )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 text-xs text-slate-500 hover:text-indigo-300 ml-auto gap-1.5"
-                    onClick={() => window.open(samUrl, "_blank")}
-                  >
+                  <Button size="sm" variant="ghost" className="h-7 text-xs text-slate-500 hover:text-indigo-300 ml-auto gap-1.5" onClick={() => window.open(samUrl, "_blank")}>
                     SAM.gov <ExternalLink className="w-3 h-3" />
                   </Button>
                 </div>
