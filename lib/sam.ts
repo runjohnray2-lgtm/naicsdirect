@@ -4,9 +4,12 @@ export interface SamOpportunity {
   solicitationNumber?: string
   fullParentPathName?: string
   postedDate?: string
+  modifiedDate?: string
   responseDeadLine?: string
   naicsCode?: string
+  classificationCode?: string
   type?: string
+  baseType?: string
   typeOfSetAsideDescription?: string
   uiLink?: string
   placeOfPerformance?: {
@@ -29,7 +32,8 @@ export async function fetchOpportunitiesByNaics(
   naicsCode: string,
   postedFrom: string,
   postedTo: string,
-  apiKey: string
+  apiKey: string,
+  noticeTypes = "o,k,p"
 ): Promise<SamOpportunity[]> {
   const params = new URLSearchParams({
     api_key: apiKey,
@@ -38,7 +42,7 @@ export async function fetchOpportunitiesByNaics(
     postedFrom,
     postedTo,
     ncode: naicsCode,
-    ptype: "o,k,p",
+    ptype: noticeTypes,
   })
 
   try {
