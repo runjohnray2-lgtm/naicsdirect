@@ -11,17 +11,27 @@ export const metadata: Metadata = {
   },
 }
 
+const FEATURED_GUIDES = [
+  {
+    slug: "how-to-search-sam-gov-without-wasting-hours",
+    title: "How to Search SAM.gov Without Wasting Hours",
+    publishedDate: "2026-09-03",
+    dek: "A practical small-business workflow for using NAICS codes, set-asides, deadlines, and go/no-go screening to find federal opportunities worth pursuing.",
+  },
+]
+
 export default function BlogIndexPage() {
   const posts = [...BLOG_POSTS].sort(
     (a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime()
   )
+  const allPosts = [...FEATURED_GUIDES, ...posts]
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Blog",
     name: "NAICS Direct Blog",
     url: "https://naicsdirect.com/blog",
-    blogPost: posts.map((p) => ({
+    blogPost: allPosts.map((p) => ({
       "@type": "BlogPosting",
       headline: p.title,
       url: `https://naicsdirect.com/blog/${p.slug}`,
@@ -60,14 +70,13 @@ export default function BlogIndexPage() {
             Federal Contracting Guides
           </h1>
           <p className="text-xl text-slate-400 max-w-2xl">
-            Plain-English guides to SAM.gov, DIBBS, and federal contracting — written by a small
-            business that actually bids on these contracts, not a marketing team.
+            Plain-English guides to SAM.gov, DIBBS, and federal contracting — written from the perspective of a small business doing the work, not a generic content farm.
           </p>
         </section>
 
         <section className="max-w-5xl mx-auto px-6 pb-24">
           <div className="grid gap-6">
-            {posts.map((post) => (
+            {allPosts.map((post) => (
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
