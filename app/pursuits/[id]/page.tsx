@@ -12,6 +12,7 @@ import { PursuitReadiness } from "@/components/pursuit-readiness"
 import { SupplierManagement, SupplierManagementSupplier } from "@/components/supplier-management"
 import { PursuitPricing, PursuitEstimateView } from "@/components/pursuit-pricing"
 import { QuoteBuilder, QuoteBuilderQuote } from "@/components/quote-builder"
+import { PursuitIntelligence } from "@/components/pursuit-intelligence"
 import {
   ArrowLeft,
   CalendarDays,
@@ -23,7 +24,7 @@ import {
   Zap,
 } from "lucide-react"
 
-type Tab = "overview" | "suppliers" | "pricing" | "quote" | "calendar"
+type Tab = "overview" | "intelligence" | "suppliers" | "pricing" | "quote" | "calendar"
 
 interface Pursuit {
   id: string
@@ -151,7 +152,7 @@ export default function PursuitDealRoom() {
         {error && <div className="mb-5 bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-300 text-sm">{error}</div>}
 
         <div className="flex gap-1 overflow-x-auto border-b border-slate-800 mb-6">
-          {([ ["overview","Overview"], ["suppliers","Suppliers"], ["pricing","Internal Pricing"], ["quote","Quote Builder"], ["calendar","Calendar"] ] as Array<[Tab,string]>).map(([value,label]) => <button key={value} onClick={() => setTab(value)} className={`px-4 py-3 text-sm whitespace-nowrap border-b-2 transition-colors ${tab === value ? "border-indigo-500 text-white" : "border-transparent text-slate-500 hover:text-slate-300"}`}>{label}</button>)}
+          {([ ["overview","Overview"], ["intelligence","Intelligence"], ["suppliers","Suppliers"], ["pricing","Internal Pricing"], ["quote","Quote Builder"], ["calendar","Calendar"] ] as Array<[Tab,string]>).map(([value,label]) => <button key={value} onClick={() => setTab(value)} className={`px-4 py-3 text-sm whitespace-nowrap border-b-2 transition-colors ${tab === value ? "border-indigo-500 text-white" : "border-transparent text-slate-500 hover:text-slate-300"}`}>{label}</button>)}
         </div>
 
         {tab === "overview" && (
@@ -162,16 +163,15 @@ export default function PursuitDealRoom() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><label className="text-xs text-slate-500">Next action<Textarea rows={3} className="mt-1.5 bg-slate-950 border-slate-700 text-white" value={pursuit.nextAction || ""} onChange={event => setPursuit({ ...pursuit, nextAction: event.target.value })} /></label><label className="text-xs text-slate-500">Internal notes<Textarea rows={3} className="mt-1.5 bg-slate-950 border-slate-700 text-white" value={pursuit.notes || ""} onChange={event => setPursuit({ ...pursuit, notes: event.target.value })} /></label></div>
                 <Button className="mt-4 bg-indigo-600 hover:bg-indigo-500" disabled={working} onClick={() => savePursuit({ nextAction: pursuit.nextAction, notes: pursuit.notes })}><Save className="w-4 h-4 mr-2" />Save Pursuit</Button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><button onClick={() => setTab("suppliers")} className="text-left bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-emerald-500/40"><p className="text-white font-medium">Source</p><p className="text-slate-500 text-xs mt-1">{pursuit.suppliers.length} candidates</p></button><button onClick={() => setTab("pricing")} className="text-left bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-amber-500/40"><p className="text-white font-medium">Price</p><p className="text-slate-500 text-xs mt-1">{pursuit.estimate ? "Estimate saved" : "Not started"}</p></button><button onClick={() => setTab("quote")} className="text-left bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-indigo-500/40"><p className="text-white font-medium">Quote</p><p className="text-slate-500 text-xs mt-1">{pursuit.quotes.length} version{pursuit.quotes.length === 1 ? "" : "s"}</p></button></div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3"><button onClick={() => setTab("intelligence")} className="text-left bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-indigo-500/40"><p className="text-white font-medium">Research</p><p className="text-slate-500 text-xs mt-1">SAM + award history</p></button><button onClick={() => setTab("suppliers")} className="text-left bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-emerald-500/40"><p className="text-white font-medium">Source</p><p className="text-slate-500 text-xs mt-1">{pursuit.suppliers.length} candidates</p></button><button onClick={() => setTab("pricing")} className="text-left bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-amber-500/40"><p className="text-white font-medium">Price</p><p className="text-slate-500 text-xs mt-1">{pursuit.estimate ? "Estimate saved" : "Not started"}</p></button><button onClick={() => setTab("quote")} className="text-left bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-indigo-500/40"><p className="text-white font-medium">Quote</p><p className="text-slate-500 text-xs mt-1">{pursuit.quotes.length} version{pursuit.quotes.length === 1 ? "" : "s"}</p></button></div>
             </section>
             <aside className="space-y-4"><PursuitReadiness pursuitId={pursuit.id} /><div className="bg-slate-900 border border-slate-800 rounded-xl p-4"><p className="text-slate-500 text-xs uppercase">Government deadline</p><p className="text-white font-semibold mt-1">{prettyDate(pursuit.bid.responseDeadline)}</p></div><Button variant="outline" className="w-full border-slate-700 text-slate-300" asChild><a href={samUrl} target="_blank" rel="noreferrer">Open Original Solicitation <ExternalLink className="w-4 h-4 ml-2" /></a></Button></aside>
           </div>
         )}
 
+        {tab === "intelligence" && <PursuitIntelligence pursuitId={pursuit.id} />}
         {tab === "suppliers" && <SupplierManagement pursuitId={pursuit.id} suppliers={pursuit.suppliers} supplierScope={pursuit.supplierScope} locationAvailable={Boolean(pursuit.bid.placeCity && pursuit.bid.placeState)} onRefresh={load} />}
-
         {tab === "pricing" && <PursuitPricing pursuitId={pursuit.id} estimate={pursuit.estimate} onRefresh={load} />}
-
         {tab === "quote" && <QuoteBuilder pursuitId={pursuit.id} bidTitle={pursuit.bid.title} solicitationReference={solicitationReference} hasEstimate={Boolean(pursuit.estimate && pursuit.estimate.recommendedPrice > 0)} quotes={pursuit.quotes} onRefresh={load} />}
 
         {tab === "calendar" && (
