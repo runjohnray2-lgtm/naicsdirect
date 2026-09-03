@@ -19,22 +19,46 @@ async function sendEmail(to: string, subject: string, lines: string[]) {
   const from = process.env.ALERT_EMAIL_FROM || "NAICS Direct <alerts@naicsdirect.com>"
   if (!apiKey) return { sent: false, reason: "RESEND_API_KEY not configured" }
   const resend = new Resend(apiKey)
-  const html = `<div style="font-family:Arial,sans-serif;line-height:1.5;color:#111"><h2>${htmlEscape(subject)}</h2><ul>${lines.map(line => `<li style="margin-bottom:10px">${htmlEscape(line)}</li>`).join("")}</ul><p><a href="https://naicsdirect.com/dashboard">Open NAICS Direct</a></p></div>`
+  const html = `<div style="font-family:Arial,sans-serif;line-height:1.5;color:#111"><h2>${htmlEscape(subject)}</h2><ul>${lines.map(line => `<li style="margin-bottom:10px">${htmlEscape(line)}</li>`).join("")}</ul><p><a href="https://naicsdirect.com/categories">Open My Categories</a></p></div>`
   await resend.emails.send({ from, to, subject, html })
   return { sent: true }
 }
 
-function customCategoryMatches(category: { keywords: string[]; naicsCodes: string[]; states: string[]; agencies: string[] }, bid: { title: string; naicsCode: string | null; placeState: string | null; agency: string | null; solicitationNumber: string | null }) {
+type CategoryRule = {
+  keywords: string[]
+  excludedKeywords: string[]
+  naicsCodes: string[]
+  states: string[]
+  agencies: string[]
+  setAsides: string[]
+  emailAlerts: boolean
+  smsAlerts: boolean
+}
+
+type MatchBid = {
+  title: string
+  naicsCode: string | null
+  placeState: string | null
+  agency: string | null
+  solicitationNumber: string | null
+  setAside: string | null
+}
+
+function customCategoryMatches(category: CategoryRule, bid: MatchBid) {
   if (category.naicsCodes.length && (!bid.naicsCode || !category.naicsCodes.includes(bid.naicsCode))) return false
   if (category.states.length && (!bid.placeState || !category.states.some(state => state.toLowerCase() === bid.placeState!.toLowerCase()))) return false
   if (category.agencies.length) {
     const agency = (bid.agency || "").toLowerCase()
     if (!category.agencies.some(value => agency.includes(value.toLowerCase()))) return false
   }
-  if (category.keywords.length) {
-    const haystack = `${bid.title} ${bid.agency || ""} ${bid.solicitationNumber || ""}`.toLowerCase()
-    if (!category.keywords.some(keyword => haystack.includes(keyword.toLowerCase()))) return false
+  if (category.setAsides.length) {
+    const setAside = (bid.setAside || "").toLowerCase()
+    if (!category.setAsides.some(value => setAside.includes(value.toLowerCase()))) return false
   }
+
+  const haystack = `${bid.title} ${bid.agency || ""} ${bid.solicitationNumber || ""}`.toLowerCase()
+  if (category.keywords.length && !category.keywords.some(keyword => haystack.includes(keyword.toLowerCase()))) return false
+  if (category.excludedKeywords.some(keyword => haystack.includes(keyword.toLowerCase()))) return false
   return true
 }
 
@@ -81,14 +105,18 @@ export async function GET(req: Request) {
       })
 
       const selectedNiches = user.subscription?.selectedNiches || []
-      const matchingNew = recentBids.filter(bid => {
+      const matchingForEmail = recentBids.filter(bid => {
         if (selectedNiches.includes(bid.niche)) return true
-        return user.customCategories.some(category => customCategoryMatches(category, bid))
+        return user.customCategories.some(category => category.emailAlerts && customCategoryMatches(category, bid))
+      })
+      const matchingForSms = recentBids.filter(bid => {
+        if (selectedNiches.includes(bid.niche)) return true
+        return user.customCategories.some(category => category.smsAlerts && customCategoryMatches(category, bid))
       })
 
-      if (matchingNew.length && pref.emailNewPosts) {
-        const unsent = [] as typeof matchingNew
-        for (const bid of matchingNew) {
+      if (matchingForEmail.length && pref.emailNewPosts) {
+        const unsent = [] as typeof matchingForEmail
+        for (const bid of matchingForEmail) {
           const exists = await prisma.notificationDelivery.findUnique({
             where: { userId_bidId_kind_channel_triggerKey: { userId: user.id, bidId: bid.id, kind: "NEW_POST", channel: "EMAIL", triggerKey: "posted" } },
           })
@@ -106,9 +134,9 @@ export async function GET(req: Request) {
         }
       }
 
-      if (matchingNew.length && pref.smsNewPosts && pref.phone) {
-        const unsent = [] as typeof matchingNew
-        for (const bid of matchingNew) {
+      if (matchingForSms.length && pref.smsNewPosts && pref.phone) {
+        const unsent = [] as typeof matchingForSms
+        for (const bid of matchingForSms) {
           const exists = await prisma.notificationDelivery.findUnique({
             where: { userId_bidId_kind_channel_triggerKey: { userId: user.id, bidId: bid.id, kind: "NEW_POST", channel: "SMS", triggerKey: "posted" } },
           })
