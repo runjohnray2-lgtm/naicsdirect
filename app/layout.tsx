@@ -7,9 +7,9 @@ import { Providers } from "@/components/session-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 const SITE_URL = "https://naicsdirect.com"
-const TITLE = "NAICS Direct — Federal Bids Filtered For Your Industry"
+const TITLE = "NAICS Direct — Find, Pursue & Manage Federal Contract Opportunities"
 const DESCRIPTION =
-  "Stop paying $500/month for bids you don't need. NAICS Direct shows only contracts in your exact industry. Real SAM.gov data, synced daily. Starting at $14/month."
+  "NAICS Direct helps small contractors and suppliers find relevant federal bids, track pursuits and deadlines, research historical awards, source pricing, and prepare quotes in one simple workflow."
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -19,14 +19,20 @@ export const metadata: Metadata = {
   },
   description: DESCRIPTION,
   keywords: [
-    "federal contract bids",
-    "SAM.gov filtered by industry",
+    "federal contract opportunities",
+    "government bids for small business",
+    "SAM.gov alternative",
+    "federal bid tracking",
+    "government contract deadline tracking",
     "NAICS code bid search",
-    "government contracts for small business",
-    "federal bid opportunities by NAICS",
+    "government bid management software",
+    "federal contract historical awards",
+    "small business government contracting software",
   ],
   applicationName: "NAICS Direct",
   authors: [{ name: "NAICS Direct" }],
+  creator: "NAICS Direct",
+  publisher: "NAICS Direct",
   robots: {
     index: true,
     follow: true,
@@ -38,9 +44,7 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  alternates: {
-    canonical: SITE_URL,
-  },
+  alternates: { canonical: SITE_URL },
   openGraph: {
     type: "website",
     url: SITE_URL,
@@ -55,11 +59,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -88,16 +88,27 @@ export default function RootLayout({
       },
       {
         "@type": "SoftwareApplication",
+        "@id": `${SITE_URL}/#software`,
         name: "NAICS Direct",
+        url: SITE_URL,
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
         description: DESCRIPTION,
-        offers: {
-          "@type": "Offer",
-          price: "14",
-          priceCurrency: "USD",
-          priceValidUntil: "2027-12-31",
-        },
+        featureList: [
+          "Federal opportunity discovery by industry and NAICS code",
+          "Watch, pursue, and pass workflow",
+          "Government bid pipeline and deal rooms",
+          "Deadline and pursuit tracking",
+          "Historical federal award research",
+          "Supplier sourcing workspace",
+          "Internal pricing and customer-facing quote workflow",
+        ],
+        offers: [
+          { "@type": "Offer", name: "Starter", price: "14", priceCurrency: "USD" },
+          { "@type": "Offer", name: "Pro", price: "29", priceCurrency: "USD" },
+          { "@type": "Offer", name: "Business", price: "49", priceCurrency: "USD" },
+        ],
+        publisher: { "@id": `${SITE_URL}/#organization` },
       },
     ],
   }
@@ -105,14 +116,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>
-      <body
-        className={`${inter.className} min-h-screen bg-slate-950 text-white antialiased`}
-      >
+      <body className={`${inter.className} min-h-screen bg-slate-950 text-white antialiased`}>
         <Providers>{children}</Providers>
         <Analytics />
       </body>
