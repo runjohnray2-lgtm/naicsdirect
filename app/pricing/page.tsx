@@ -35,11 +35,11 @@ export default async function PricingPage({
             <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 text-sm text-amber-400">Checkout was canceled. No charge was made.</div>
           )}
           <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-1.5 text-sm text-green-400 mb-6">
-            {currentPriceId ? "Change plans without creating a second subscription" : "3-day free trial on all plans"}
+            {currentPriceId ? "Change plans without creating a second subscription" : "7-day free trial on all plans"}
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Find the Bid Early. Use the Time to Win It.</h1>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">Government bids take time. Suppliers take time. Subcontractors take time. NAICS Direct cuts through thousands of unrelated notices so you can find real opportunities sooner and start sourcing before the deadline becomes the problem.</p>
-          <p className="text-sm text-slate-500 mt-5">Focused federal opportunity feeds • urgency filtering • historical award intelligence</p>
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Find the Bid. Build the Deal. Submit the Quote.</h1>
+          <p className="text-lg text-slate-400 max-w-2xl mx-auto">NAICS Direct helps small contractors find relevant federal work early enough to source suppliers, line up subcontractors, research prior awards, track deadlines, and turn an opportunity into a real pursuit.</p>
+          <p className="text-sm text-slate-500 mt-5">Focused federal opportunity feeds • pursuit tracking • sourcing workflow • historical award intelligence</p>
         </div>
       </div>
 
@@ -63,8 +63,8 @@ export default async function PricingPage({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
             {[
               { title: "Find Earlier", desc: "Daily SAM.gov opportunity data organized into focused NAICS niches instead of one giant search result." },
-              { title: "Research Faster", desc: "Use urgency filters and historical federal award intelligence to decide what deserves your time." },
-              { title: "Build a Pipeline", desc: "Track multiple categories so you are not depending on one supplier reply or one government solicitation." },
+              { title: "Work the Opportunity", desc: "Move promising bids into a pursuit workspace, research prior awards, source suppliers, and track what still needs to be done." },
+              { title: "Protect the Deadline", desc: "Use urgency and pursuit tracking so a bid with real profit potential does not disappear because the due date was missed." },
             ].map((item) => (
               <div key={item.title} className="bg-slate-900 border border-slate-800 rounded-xl p-6">
                 <p className="text-sm font-semibold text-white mb-1">{item.title}</p>
@@ -77,7 +77,7 @@ export default async function PricingPage({
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
           {[
             { title: "Cancel Anytime", desc: "No contracts, no lock-in. Cancel from your account dashboard." },
-            { title: "3 Days Free", desc: "Enter your card now. Cancel before the trial ends and you will not be charged." },
+            { title: "7 Days Free", desc: "Enter your card now. Cancel before the trial ends and you will not be charged." },
             { title: "Real Federal Data", desc: "SAM.gov opportunities are refreshed daily. Historical award research uses federal award data." },
           ].map((item) => (
             <div key={item.title} className="bg-slate-900 border border-slate-800 rounded-xl p-6">
@@ -92,7 +92,7 @@ export default async function PricingPage({
         <h2 className="text-2xl font-bold text-white text-center mb-10">Common Questions</h2>
         <div className="space-y-4">
           {[
-            { q: "How does the free trial work?", a: "Enter your card and get 3 days free. Cancel before the trial ends and you owe nothing." },
+            { q: "How does the free trial work?", a: "Enter your card and get 7 days free. Cancel before the trial ends and you owe nothing." },
             { q: "What is a NAICS niche?", a: "A focused group of related NAICS codes that turns a broad federal opportunity search into a cleaner feed for the type of work or products you actually pursue." },
             { q: "Why does finding a bid early matter?", a: "Because a usable quote may require supplier pricing, subcontractor availability, financing checks, compliance research, and time for questions. More lead time gives you more options." },
             { q: "What is historical award intelligence?", a: "Past federal contract award information can help you research who has won similar work and the historical contract value. Historical totals are context, not a guaranteed future price or unit price." },
