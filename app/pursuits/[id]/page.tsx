@@ -8,20 +8,19 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import AppNav from "@/components/app-nav"
 import { PursuitReadiness } from "@/components/pursuit-readiness"
 import { SupplierManagement, SupplierManagementSupplier } from "@/components/supplier-management"
 import { PursuitPricing, PursuitEstimateView } from "@/components/pursuit-pricing"
 import { QuoteBuilder, QuoteBuilderQuote } from "@/components/quote-builder"
 import { PursuitIntelligence } from "@/components/pursuit-intelligence"
 import {
-  ArrowLeft,
   CalendarDays,
   ExternalLink,
   Loader2,
   MapPin,
   RefreshCw,
   Save,
-  Zap,
 } from "lucide-react"
 
 type Tab = "overview" | "intelligence" | "suppliers" | "pricing" | "quote" | "calendar"
@@ -134,19 +133,20 @@ export default function PursuitDealRoom() {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <header className="border-b border-slate-800 bg-slate-950/95 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0"><Link href="/" className="flex items-center gap-2 flex-shrink-0"><div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center"><Zap className="w-4 h-4 text-white" /></div><span className="font-bold text-white hidden sm:block">NAICS Direct</span></Link><span className="text-slate-700">/</span><span className="text-slate-300 text-sm truncate">Deal Room</span></div>
-          <div className="flex items-center gap-2"><Button size="sm" variant="outline" className="border-slate-700 text-slate-300" onClick={load}><RefreshCw className="w-3.5 h-3.5 mr-1.5" />Refresh</Button><Button size="sm" variant="ghost" className="text-slate-400" asChild><Link href="/pursuits"><ArrowLeft className="w-3.5 h-3.5 mr-1.5" />Pursuits</Link></Button></div>
-        </div>
-      </header>
+      <AppNav />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-7">
-        <div className="mb-6">
-          <div className="flex flex-wrap gap-2 mb-3"><Badge className="bg-indigo-500/10 text-indigo-300 border-indigo-500/30">{pursuit.stage.replaceAll("_", " ")}</Badge>{pursuit.bid.naicsCode && <Badge className="bg-slate-800 text-slate-300 border-slate-700 font-mono">NAICS {pursuit.bid.naicsCode}</Badge>}{pursuit.bid.setAside && <Badge className="bg-emerald-500/10 text-emerald-300 border-emerald-500/30">{pursuit.bid.setAside}</Badge>}</div>
-          <h1 className="text-2xl font-bold text-white leading-tight">{pursuit.bid.title}</h1>
-          <p className="text-slate-500 text-sm mt-1">{pursuit.bid.agency || "Federal Agency"}{pursuit.bid.solicitationNumber ? ` · ${pursuit.bid.solicitationNumber}` : ""}</p>
-          {location && <p className="text-slate-400 text-sm mt-2 flex items-center gap-1.5"><MapPin className="w-4 h-4 text-indigo-400" />{location}</p>}
+        <div className="mb-6 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap gap-2 mb-3"><Badge className="bg-indigo-500/10 text-indigo-300 border-indigo-500/30">{pursuit.stage.replaceAll("_", " ")}</Badge>{pursuit.bid.naicsCode && <Badge className="bg-slate-800 text-slate-300 border-slate-700 font-mono">NAICS {pursuit.bid.naicsCode}</Badge>}{pursuit.bid.setAside && <Badge className="bg-emerald-500/10 text-emerald-300 border-emerald-500/30">{pursuit.bid.setAside}</Badge>}</div>
+            <h1 className="text-2xl font-bold text-white leading-tight">{pursuit.bid.title}</h1>
+            <p className="text-slate-500 text-sm mt-1">{pursuit.bid.agency || "Federal Agency"}{pursuit.bid.solicitationNumber ? ` · ${pursuit.bid.solicitationNumber}` : ""}</p>
+            {location && <p className="text-slate-400 text-sm mt-2 flex items-center gap-1.5"><MapPin className="w-4 h-4 text-indigo-400" />{location}</p>}
+          </div>
+          <div className="flex gap-2 flex-shrink-0">
+            <Button size="sm" variant="outline" className="border-slate-700 text-slate-300" onClick={load}><RefreshCw className="w-3.5 h-3.5 mr-1.5" />Refresh</Button>
+            <Button size="sm" variant="outline" className="border-indigo-500/30 text-indigo-300" asChild><Link href="/pursuits">Back to My Pursuits</Link></Button>
+          </div>
         </div>
 
         {error && <div className="mb-5 bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-300 text-sm">{error}</div>}
