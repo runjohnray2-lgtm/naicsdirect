@@ -5,14 +5,12 @@ import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import AppNav from "@/components/app-nav"
 import {
-  Zap,
-  ArrowLeft,
   CalendarDays,
   Clock3,
   ExternalLink,
   Loader2,
-  RefreshCw,
   Crosshair,
   Eye,
   AlertTriangle,
@@ -102,12 +100,7 @@ export default function PursuitsPage() {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <header className="border-b border-slate-800 bg-slate-950/95 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3"><Link href="/" className="flex items-center gap-2"><div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center"><Zap className="w-4 h-4 text-white" /></div><span className="text-white font-bold hidden sm:block">NAICS Direct</span></Link><span className="text-slate-700">/</span><span className="text-slate-300 text-sm">My Pursuits</span></div>
-          <div className="flex items-center gap-2"><Button size="sm" variant="outline" className="border-slate-700 text-slate-300" onClick={load} disabled={loading}><RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />Refresh</Button><Button size="sm" variant="ghost" className="text-slate-400" asChild><Link href="/dashboard"><ArrowLeft className="w-3.5 h-3.5 mr-1.5" />Bid Feed</Link></Button></div>
-        </div>
-      </header>
+      <AppNav />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-wrap items-end justify-between gap-4 mb-7"><div><h1 className="text-3xl font-bold text-white">Government Bid Pipeline</h1><p className="text-slate-400 mt-1">Everything you decide to chase, from review through award.</p></div><div className="flex gap-2"><Badge className="bg-indigo-500/10 text-indigo-300 border-indigo-500/30">{active.length} active</Badge><Badge className="bg-slate-800 text-slate-300 border-slate-700">{watching.length} watching</Badge></div></div>
