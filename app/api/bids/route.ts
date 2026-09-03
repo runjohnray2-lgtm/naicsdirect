@@ -9,13 +9,19 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const nicheId = searchParams.get("niche") || ""
   const page = parseInt(searchParams.get("page") || "0", 10)
+  const niche = NICHE_MAP[nicheId]
 
-  if (!NICHE_MAP[nicheId]) {
-    return NextResponse.json({ error: "Invalid niche" }, { status: 400 })
+  if (!niche) {
+    return NextResponse.json({ error: "Invalid category" }, { status: 400 })
   }
 
   const session = await auth()
   const entitlement = await getEntitlement(session?.user?.id)
+
+  // Internal watchlists are never part of the anonymous/public preview.
+  if (niche.public === false && !session?.user?.id) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
 
   // Former subscribers do not regain a full feed after canceling or going past due.
   if (session?.user?.id && !entitlement.isGated) {
@@ -41,7 +47,7 @@ export async function GET(request: NextRequest) {
   }
 
   const isFreePreview = !entitlement.isGated
-  const take = isFreePreview ? 5 : 50
+  const take = isFreePreview ? 12 : 50
   const effectivePage = isFreePreview ? 0 : page
 
   try {
@@ -59,7 +65,7 @@ export async function GET(request: NextRequest) {
       prisma.bid.count({ where }),
     ])
 
-    const bids = rawBids.map((b) => ({
+    const mapFullBid = (b: (typeof rawBids)[number]) => ({
       id: b.noticeId,
       title: b.title,
       solicitationNumber: b.solicitationNumber ?? "",
@@ -79,7 +85,52 @@ export async function GET(request: NextRequest) {
       placeCountry: b.placeCountry ?? "",
       isActive: b.active,
       isDibbs: isDibbsPosting(b.agency, b.title),
-    }))
+      previewLocked: false,
+    })
+
+    let bids = rawBids.map(mapFullBid)
+
+    if (isFreePreview) {
+      const now = Date.now()
+      const fortyEightHours = now + 48 * 60 * 60 * 1000
+      const urgent = rawBids
+        .filter((b) => {
+          const deadline = b.responseDeadline?.getTime()
+          return deadline !== undefined && deadline >= now && deadline <= fortyEightHours
+        })
+        .slice(0, 2)
+
+      // If there is nothing closing within 48 hours, still show the nearest real
+      // opportunity so the preview proves the feed is live.
+      const visible = urgent.length > 0 ? urgent : rawBids.slice(0, 1)
+      const visibleIds = new Set(visible.map((b) => b.id))
+      const locked = rawBids.filter((b) => !visibleIds.has(b.id)).slice(0, 3)
+
+      const lockedRows = locked.map((b) => ({
+        id: `preview-${b.id}`,
+        title: "Subscriber opportunity",
+        solicitationNumber: "",
+        responseDate: b.responseDeadline?.toISOString() ?? "",
+        type: "Opportunity",
+        typeCode: "",
+        agency: "Federal agency",
+        subAgency: "",
+        publishDate: "",
+        setAside: "",
+        uiLink: "",
+        naicsCode: "",
+        placeStreet: "",
+        placeCity: "",
+        placeState: "",
+        placeZip: "",
+        placeCountry: "",
+        isActive: true,
+        isDibbs: false,
+        previewLocked: true,
+      }))
+
+      bids = [...visible.map(mapFullBid), ...lockedRows]
+    }
 
     return NextResponse.json({
       bids,
