@@ -7,6 +7,7 @@ import {
   BarChart3,
   ExternalLink,
   FileSearch,
+  History,
   Loader2,
   RefreshCw,
   UserRound,
@@ -14,6 +15,15 @@ import {
 
 type Award = Record<string, unknown>
 type SamDetail = Record<string, unknown>
+
+type OpportunityChange = {
+  id: string
+  changeType: string
+  field: string
+  oldValue: string | null
+  newValue: string | null
+  detectedAt: string
+}
 
 interface IntelligenceData {
   sam: { detail: SamDetail | null; error: string | null }
@@ -36,8 +46,28 @@ function awardValue(award: Award) {
   return award["Award Amount"] ?? award["Total Obligation"] ?? 0
 }
 
+function changeLabel(change: OpportunityChange) {
+  if (change.changeType === "DEADLINE") return "Deadline changed"
+  if (change.changeType === "SET_ASIDE") return "Set-aside changed"
+  if (change.changeType === "LIFECYCLE") return "Notice stage changed"
+  if (change.changeType === "CLASSIFICATION") return "Classification changed"
+  return "Notice updated"
+}
+
+function displayChangeValue(field: string, value: string | null) {
+  if (!value) return "Not listed"
+  if (field === "responseDeadline") {
+    const parsed = new Date(value)
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })
+    }
+  }
+  return value
+}
+
 export function PursuitIntelligence({ pursuitId }: { pursuitId: string }) {
   const [data, setData] = useState<IntelligenceData | null>(null)
+  const [changes, setChanges] = useState<OpportunityChange[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -45,10 +75,14 @@ export function PursuitIntelligence({ pursuitId }: { pursuitId: string }) {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`/api/pursuits/${pursuitId}/intelligence`, { cache: "no-store" })
-      const body = await response.json()
-      if (!response.ok) throw new Error(body.error || "Could not load intelligence")
+      const [intelligenceResponse, pursuitResponse] = await Promise.all([
+        fetch(`/api/pursuits/${pursuitId}/intelligence`, { cache: "no-store" }),
+        fetch(`/api/pursuits/${pursuitId}`, { cache: "no-store" }),
+      ])
+      const [body, pursuitBody] = await Promise.all([intelligenceResponse.json(), pursuitResponse.json()])
+      if (!intelligenceResponse.ok) throw new Error(body.error || "Could not load intelligence")
       setData(body)
+      if (pursuitResponse.ok) setChanges(pursuitBody?.pursuit?.bid?.changes || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load intelligence")
     } finally {
@@ -68,7 +102,7 @@ export function PursuitIntelligence({ pursuitId }: { pursuitId: string }) {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3">
-        <div><h2 className="text-white font-semibold flex items-center gap-2"><FileSearch className="w-5 h-5 text-indigo-400" />Solicitation Intelligence</h2><p className="text-slate-500 text-sm mt-1">Fresh SAM.gov detail plus recent federal award context for the bid’s NAICS code.</p></div>
+        <div><h2 className="text-white font-semibold flex items-center gap-2"><FileSearch className="w-5 h-5 text-indigo-400" />Solicitation Intelligence</h2><p className="text-slate-500 text-sm mt-1">Fresh SAM.gov detail, change history, and federal award context for this pursuit.</p></div>
         <Button size="sm" variant="outline" className="border-slate-700 text-slate-300" onClick={load} disabled={loading}>{loading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <RefreshCw className="w-3.5 h-3.5 mr-2" />}Refresh Research</Button>
       </div>
 
@@ -90,6 +124,11 @@ export function PursuitIntelligence({ pursuitId }: { pursuitId: string }) {
             {contacts.length > 0 && <div><p className="text-slate-500 text-xs uppercase mb-2">Government contacts</p><div className="grid grid-cols-1 md:grid-cols-2 gap-2">{contacts.slice(0, 4).map((contact, index) => <div key={index} className="bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs"><p className="text-slate-300 flex items-center gap-1.5"><UserRound className="w-3.5 h-3.5 text-indigo-400" />{text(contact.fullName) || text(contact.title) || `Contact ${index + 1}`}</p>{text(contact.email) && <p className="text-slate-500 mt-1">{text(contact.email)}</p>}{text(contact.phone) && <p className="text-slate-500 mt-1">{text(contact.phone)}</p>}</div>)}</div></div>}
           </div>
         ) : <p className="text-slate-500 text-sm">No exact SAM detail was returned.</p>}
+      </div>
+
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+        <div className="p-5 border-b border-slate-800"><h3 className="text-white font-semibold flex items-center gap-2"><History className="w-5 h-5 text-cyan-400" />What Changed</h3><p className="text-slate-500 text-xs mt-1">NAICS Direct records important SAM revisions instead of silently replacing the old value.</p></div>
+        {changes.length === 0 ? <div className="p-6 text-slate-500 text-sm text-center">No tracked changes yet. Future SAM revisions will appear here automatically.</div> : <div className="divide-y divide-slate-800">{changes.map(change => <div key={change.id} className="p-4"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-slate-200 text-sm font-medium">{changeLabel(change)}</p><span className="text-slate-600 text-xs">{new Date(change.detectedAt).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}</span></div><div className="grid sm:grid-cols-2 gap-2 mt-2 text-xs"><div className="rounded-md bg-slate-950 border border-slate-800 p-2"><span className="text-slate-600">Before: </span><span className="text-slate-400">{displayChangeValue(change.field, change.oldValue)}</span></div><div className="rounded-md bg-cyan-500/5 border border-cyan-500/15 p-2"><span className="text-slate-600">Now: </span><span className="text-cyan-200">{displayChangeValue(change.field, change.newValue)}</span></div></div></div>)}</div>}
       </div>
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
