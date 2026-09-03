@@ -42,10 +42,13 @@ export async function POST(
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await context.params
-  const pursuit = await prisma.pursuit.findFirst({
-    where: { id, userId: session.user.id },
-    include: { bid: true, estimate: true },
-  })
+  const [pursuit, companyProfile] = await Promise.all([
+    prisma.pursuit.findFirst({
+      where: { id, userId: session.user.id },
+      include: { bid: true, estimate: true },
+    }),
+    prisma.companyProfile.findUnique({ where: { userId: session.user.id } }),
+  ])
   if (!pursuit) return NextResponse.json({ error: "Pursuit not found" }, { status: 404 })
   if (!pursuit.estimate || pursuit.estimate.recommendedPrice <= 0) {
     return NextResponse.json(
@@ -53,18 +56,24 @@ export async function POST(
       { status: 409 }
     )
   }
+  if (!companyProfile?.legalName) {
+    return NextResponse.json(
+      { error: "Complete your Federal Quote Profile in Account before building a federal quote." },
+      { status: 409 }
+    )
+  }
 
   // SECURITY BOUNDARY: the quote is constructed only from public/customer-safe bid fields,
-  // user-entered customer-facing text, and the final recommended price. Supplier costs,
-  // margin percentage, financing costs, contingency, internal notes, and supplier identities
-  // are intentionally not selected into or interpolated into any quote text below.
+  // the saved company identity, user-entered customer-facing text, and the final selling price.
+  // Supplier costs, margin percentage, financing costs, contingency, internal notes, and
+  // supplier identities are intentionally excluded.
   const body = await req.json().catch(() => ({})) as Record<string, unknown>
   const solicitationRef = pursuit.bid.solicitationNumber || pursuit.bid.noticeId
   const place = [pursuit.bid.placeCity, pursuit.bid.placeState].filter(Boolean).join(", ")
-  const defaultScope = `Radiantz proposes to furnish the products and/or services required for ${pursuit.bid.title}. Performance will be in accordance with the applicable solicitation requirements, incorporated specifications, and accepted clarifications.`
-  const defaultAssumptions = "Pricing is based on the requirements available as of the quote date. Material changes to quantities, scope, schedule, site conditions, or incorporated requirements may require a revised quotation."
+  const defaultScope = `${companyProfile.legalName} proposes to furnish the products and/or services required for ${pursuit.bid.title}. Performance will be in accordance with the applicable solicitation requirements, incorporated specifications, amendments, and accepted clarifications.`
+  const defaultAssumptions = "Pricing is based on the solicitation requirements available as of the quote date. Material changes to quantities, scope, schedule, site conditions, incorporated requirements, or amendments may require a revised quotation."
   const defaultDelivery = place
-    ? `Delivery/performance will be coordinated for ${place} in accordance with the required schedule.`
+    ? `Delivery/performance will be coordinated for ${place} in accordance with the required solicitation schedule.`
     : "Delivery/performance will be completed in accordance with the required solicitation schedule."
 
   const title = cleanText(body.title, `Quotation — ${pursuit.bid.title}`)
@@ -80,17 +89,36 @@ export async function POST(
   })
   const version = (latest?.version ?? 0) + 1
 
+  const companySnapshot = {
+    legalName: companyProfile.legalName,
+    dbaName: companyProfile.dbaName,
+    uei: companyProfile.uei,
+    cageCode: companyProfile.cageCode,
+    address1: companyProfile.address1,
+    address2: companyProfile.address2,
+    city: companyProfile.city,
+    state: companyProfile.state,
+    zip: companyProfile.zip,
+    country: companyProfile.country,
+    phone: companyProfile.phone,
+    quoteEmail: companyProfile.quoteEmail || session.user.email,
+    website: companyProfile.website,
+    contactName: companyProfile.contactName || session.user.name,
+    remitTo: companyProfile.remitTo,
+  }
+
   const quote = await prisma.quoteDraft.create({
     data: {
       pursuitId: id,
       version,
       status: "DRAFT",
       title,
-      scopeText: `${scopeText}\n\nReference: ${solicitationRef}`,
+      scopeText: `${scopeText}\n\nSolicitation: ${solicitationRef}`,
       assumptionsText,
       deliveryText,
       validityDays,
       totalPrice: pursuit.estimate.recommendedPrice,
+      companySnapshot,
     },
   })
 
@@ -98,7 +126,7 @@ export async function POST(
     where: { id },
     data: {
       stage: "READY_TO_SUBMIT",
-      nextAction: "Review customer-facing quote against solicitation instructions before submission",
+      nextAction: "Verify the quote against the solicitation's exact submission instructions, amendments, evaluation factors, required forms, and representations before submission",
     },
   })
 
