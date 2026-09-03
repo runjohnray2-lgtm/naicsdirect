@@ -59,6 +59,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.6,
     },
+    {
+      url: `${base}/blog/how-to-search-sam-gov-without-wasting-hours`,
+      lastModified: new Date("2026-09-03"),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
     ...BLOG_POSTS.map((p) => ({
       url: `${base}/blog/${p.slug}`,
       lastModified: new Date(p.publishedDate),
