@@ -23,7 +23,14 @@ const BOOLEAN_FIELDS = [
 ] as const
 
 const detailInclude = {
-  bid: true,
+  bid: {
+    include: {
+      changes: {
+        orderBy: { detectedAt: "desc" as const },
+        take: 30,
+      },
+    },
+  },
   suppliers: {
     orderBy: [{ status: "asc" as const }, { distanceMiles: "asc" as const }, { createdAt: "asc" as const }],
   },
