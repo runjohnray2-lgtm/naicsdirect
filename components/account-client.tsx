@@ -47,6 +47,7 @@ export default function AccountClient({
   const [portalLoading, setPortalLoading] = useState(false)
 
   const currentPlan = PLANS.find((p) => p.priceId === subscription?.stripePriceId)
+  const periodEnd = subscription?.stripeCurrentPeriodEnd ?? subscription?.trialEnd ?? null
 
   const handleBillingPortal = async () => {
     setPortalLoading(true)
@@ -63,11 +64,8 @@ export default function AccountClient({
 
   return (
     <div className="space-y-6">
-      {/* Profile card */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">
-          Profile
-        </h2>
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Profile</h2>
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-indigo-600/20 border border-indigo-600/30 rounded-full flex items-center justify-center text-lg font-bold text-indigo-400">
             {user.email[0].toUpperCase()}
@@ -79,88 +77,85 @@ export default function AccountClient({
         </div>
       </div>
 
-      {/* Subscription card */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">
-          Subscription
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+          <div>
+            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Your Service</h2>
+            <p className="text-slate-400 text-sm mt-1">Plan, access, billing date, and upgrade controls.</p>
+          </div>
+          {subscription && (
+            <span className={`self-start text-xs font-semibold px-3 py-1 rounded-full border ${STATUS_COLORS[subscription.status] ?? "text-slate-400 bg-slate-800 border-slate-700"}`}>
+              {STATUS_LABELS[subscription.status] ?? subscription.status}
+            </span>
+          )}
+        </div>
 
         {!subscription ? (
           <div className="text-center py-8">
-            <p className="text-slate-400 text-sm mb-4">
-              You don&apos;t have an active subscription.
-            </p>
-            <Link
-              href="/pricing"
-              className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors"
-            >
-              View Plans
+            <p className="text-slate-400 text-sm mb-4">You don&apos;t have an active subscription.</p>
+            <Link href="/pricing" className="inline-block bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors">
+              Choose a Plan
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white font-semibold">
-                  {currentPlan?.name ?? "NAICS Direct"}
-                </p>
-                <p className="text-slate-500 text-sm">
-                  ${currentPlan?.price ?? "—"}/month
-                </p>
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4">
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">Current plan</p>
+                <p className="text-white font-semibold text-lg mt-1">{currentPlan?.name ?? "NAICS Direct"}</p>
+                <p className="text-slate-500 text-sm">${currentPlan?.price ?? "—"}/month</p>
               </div>
-              <span
-                className={`text-xs font-semibold px-3 py-1 rounded-full border ${
-                  STATUS_COLORS[subscription.status] ??
-                  "text-slate-400 bg-slate-800 border-slate-700"
-                }`}
-              >
-                {STATUS_LABELS[subscription.status] ?? subscription.status}
-              </span>
+              <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4">
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">Category access</p>
+                <p className="text-white font-semibold text-lg mt-1">{currentPlan?.nicheLimit ?? "—"}</p>
+                <p className="text-slate-500 text-sm">{currentPlan?.nicheLimit === 15 ? "All categories" : "categories per billing period"}</p>
+              </div>
+              <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4">
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">
+                  {subscription.status === "canceled" ? "Access through" : subscription.status === "trialing" ? "Trial ends" : "Next billing date"}
+                </p>
+                <p className="text-white font-semibold text-sm mt-2">{periodEnd ? formatDate(periodEnd) : "Not available"}</p>
+              </div>
             </div>
 
-            {subscription.status === "trialing" && subscription.trialEnd && (
-              <div className="bg-green-500/5 border border-green-500/20 rounded-lg px-4 py-3 text-sm text-green-400">
-                Trial ends {formatDate(subscription.trialEnd)}
+            {currentPlan && (
+              <div className="border border-slate-800 rounded-xl p-4">
+                <p className="text-sm font-medium text-white mb-3">Included with {currentPlan.name}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {currentPlan.features.map((feature) => (
+                    <div key={feature} className="text-sm text-slate-400 flex gap-2">
+                      <span className="text-indigo-400">✓</span><span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
-
-            {subscription.status === "active" &&
-              subscription.stripeCurrentPeriodEnd && (
-                <p className="text-xs text-slate-500">
-                  Next billing date:{" "}
-                  {formatDate(subscription.stripeCurrentPeriodEnd)}
-                </p>
-              )}
 
             {subscription.status === "past_due" && (
               <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 text-sm text-amber-400">
-                Your payment is past due. Update your payment method to keep
-                access.
+                Your payment is past due. Update your payment method to keep access.
               </div>
             )}
 
-            <button
-              onClick={handleBillingPortal}
-              disabled={portalLoading}
-              className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-medium py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {portalLoading ? "Loading..." : "Manage Billing & Payment Method"}
-            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Link href="/pricing" className="text-center bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold py-3 rounded-lg transition-colors">
+                Upgrade or Compare Plans
+              </Link>
+              <button
+                onClick={handleBillingPortal}
+                disabled={portalLoading}
+                className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-medium py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {portalLoading ? "Loading..." : "Manage Billing & Payment"}
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Sign out */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">
-          Session
-        </h2>
-        <button
-          onClick={() => signOut({ callbackUrl: "/" })}
-          className="text-sm text-red-400 hover:text-red-300 transition-colors"
-        >
-          Sign Out
-        </button>
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4">Session</h2>
+        <button onClick={() => signOut({ callbackUrl: "/" })} className="text-sm text-red-400 hover:text-red-300 transition-colors">Sign Out</button>
       </div>
     </div>
   )
