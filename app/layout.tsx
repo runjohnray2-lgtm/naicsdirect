@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import Script from "next/script"
 import "./globals.css"
 import { Analytics } from "@vercel/analytics/next"
 import { Providers } from "@/components/session-provider"
@@ -7,6 +8,7 @@ import { Providers } from "@/components/session-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 const SITE_URL = "https://naicsdirect.com"
+const GA_MEASUREMENT_ID = "G-X9NHX8NZCZ"
 const TITLE = "NAICS Direct — Find, Pursue & Manage Federal Contract Opportunities"
 const DESCRIPTION =
   "NAICS Direct helps small contractors and suppliers find relevant federal bids, track pursuits and deadlines, research historical awards, source pricing, and prepare quotes in one simple workflow."
@@ -119,6 +121,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>
       <body className={`${inter.className} min-h-screen bg-slate-950 text-white antialiased`}>
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_MEASUREMENT_ID}');`}
+        </Script>
         <Providers>{children}</Providers>
         <Analytics />
       </body>
