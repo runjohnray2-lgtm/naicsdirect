@@ -5,6 +5,14 @@ import { fetchOpportunitiesByNaics, formatSamDate } from "@/lib/sam"
 
 export const maxDuration = 300
 
+function iso(value: Date | null | undefined) {
+  return value ? value.toISOString() : null
+}
+
+function text(value: string | null | undefined) {
+  return value ?? null
+}
+
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization")
   if (
@@ -31,6 +39,7 @@ export async function GET(req: Request) {
 
   let totalSynced = 0
   let totalErrors = 0
+  let totalChanges = 0
   const summary: Record<string, number> = {}
 
   // Internal cross-category watchlists (currently Radiantz) are synced first.
@@ -64,21 +73,26 @@ export async function GET(req: Request) {
           const placeState = place?.state?.code ?? place?.state?.name ?? null
           const placeZip = place?.zip ?? null
           const placeCountry = place?.country?.code ?? place?.country?.name ?? null
+          const responseDeadline = opp.responseDeadLine ? new Date(opp.responseDeadLine) : null
+          const sourceModifiedAt = opp.modifiedDate ? new Date(opp.modifiedDate) : null
 
-          await prisma.bid.upsert({
+          const existing = await prisma.bid.findUnique({ where: { noticeId: opp.noticeId } })
+
+          const bid = await prisma.bid.upsert({
             where: { noticeId: opp.noticeId },
             update: {
               title: opp.title,
               solicitationNumber: opp.solicitationNumber ?? null,
               agency: opp.fullParentPathName ?? null,
               naicsCode: opp.naicsCode ?? naicsCode,
+              classificationCode: opp.classificationCode ?? null,
               niche: niche.id,
               postedDate: opp.postedDate ? new Date(opp.postedDate) : null,
-              responseDeadline: opp.responseDeadLine
-                ? new Date(opp.responseDeadLine)
-                : null,
+              sourceModifiedAt,
+              responseDeadline,
               setAside: opp.typeOfSetAsideDescription ?? null,
               bidType: opp.type ?? null,
+              baseType: opp.baseType ?? null,
               uiLink: opp.uiLink ?? null,
               placeStreet,
               placeCity,
@@ -94,13 +108,14 @@ export async function GET(req: Request) {
               solicitationNumber: opp.solicitationNumber ?? null,
               agency: opp.fullParentPathName ?? null,
               naicsCode: opp.naicsCode ?? naicsCode,
+              classificationCode: opp.classificationCode ?? null,
               niche: niche.id,
               postedDate: opp.postedDate ? new Date(opp.postedDate) : null,
-              responseDeadline: opp.responseDeadLine
-                ? new Date(opp.responseDeadLine)
-                : null,
+              sourceModifiedAt,
+              responseDeadline,
               setAside: opp.typeOfSetAsideDescription ?? null,
               bidType: opp.type ?? null,
+              baseType: opp.baseType ?? null,
               uiLink: opp.uiLink ?? null,
               placeStreet,
               placeCity,
@@ -110,6 +125,32 @@ export async function GET(req: Request) {
               active: true,
             },
           })
+
+          if (existing) {
+            const changes = [
+              { field: "bidType", changeType: "LIFECYCLE", oldValue: text(existing.bidType), newValue: text(opp.type) },
+              { field: "responseDeadline", changeType: "DEADLINE", oldValue: iso(existing.responseDeadline), newValue: iso(responseDeadline) },
+              { field: "setAside", changeType: "SET_ASIDE", oldValue: text(existing.setAside), newValue: text(opp.typeOfSetAsideDescription) },
+              { field: "classificationCode", changeType: "CLASSIFICATION", oldValue: text(existing.classificationCode), newValue: text(opp.classificationCode) },
+              { field: "title", changeType: "CONTENT", oldValue: text(existing.title), newValue: text(opp.title) },
+            ].filter(change => change.oldValue !== change.newValue)
+
+            // Only record a new SAM revision once. The same notice can be encountered
+            // through an internal watchlist and a public category during one sync.
+            const revisionChanged = iso(existing.sourceModifiedAt) !== iso(sourceModifiedAt)
+            if (revisionChanged && changes.length) {
+              await prisma.bidChange.createMany({
+                data: changes.map(change => ({
+                  bidId: bid.id,
+                  changeType: change.changeType,
+                  field: change.field,
+                  oldValue: change.oldValue,
+                  newValue: change.newValue,
+                })),
+              })
+              totalChanges += changes.length
+            }
+          }
 
           nicheCount++
           totalSynced++
@@ -150,6 +191,7 @@ export async function GET(req: Request) {
     success: true,
     totalSynced,
     totalErrors,
+    totalChanges,
     totalMismatchedDeactivated,
     mismatchSummary,
     range: { from: postedFrom, to: postedTo },
