@@ -84,11 +84,14 @@ model Bid {
   solicitationNumber     String?
   agency                 String?
   naicsCode              String?
+  classificationCode     String?
   niche                  String
   postedDate             DateTime?
+  sourceModifiedAt       DateTime?
   responseDeadline       DateTime?
   setAside               String?
   bidType                String?
+  baseType               String?
   uiLink                 String?
   placeStreet            String?
   placeCity              String?
@@ -100,12 +103,28 @@ model Bid {
   updatedAt              DateTime               @updatedAt
   pursuits               Pursuit[]
   notificationDeliveries NotificationDelivery[]
+  changes                BidChange[]
 
   @@index([niche])
   @@index([postedDate])
+  @@index([sourceModifiedAt])
   @@index([responseDeadline])
   @@index([active])
   @@index([placeCity, placeState])
+}
+
+model BidChange {
+  id         String   @id @default(cuid())
+  bidId      String
+  changeType String
+  field      String
+  oldValue   String?
+  newValue   String?
+  detectedAt DateTime @default(now())
+  bid        Bid      @relation(fields: [bidId], references: [id], onDelete: Cascade)
+
+  @@index([bidId, detectedAt])
+  @@index([changeType, detectedAt])
 }
 
 model Pursuit {
