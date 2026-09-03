@@ -9,17 +9,20 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-  subscription  Subscription?
-  pursuits      Pursuit[]
+  id                     String                  @id @default(cuid())
+  name                   String?
+  email                  String                  @unique
+  emailVerified          DateTime?
+  image                  String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  accounts               Account[]
+  sessions               Session[]
+  subscription           Subscription?
+  pursuits               Pursuit[]
+  notificationPreference NotificationPreference?
+  customCategories       CustomCategory[]
+  notificationDeliveries NotificationDelivery[]
 }
 
 model Account {
@@ -59,43 +62,44 @@ model VerificationToken {
 }
 
 model Subscription {
-  id                       String    @id @default(cuid())
-  userId                   String    @unique
-  stripeCustomerId         String    @unique
-  stripeSubscriptionId     String?   @unique
-  stripePriceId            String?
-  stripeCurrentPeriodEnd   DateTime?
-  status                   String    @default("trialing")
-  trialEnd                 DateTime?
-  selectedNiches           String[]  @default([])
-  nicheLockedUntil         DateTime?
-  createdAt                DateTime  @default(now())
-  updatedAt                DateTime  @updatedAt
-  user                     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  stripeCustomerId       String    @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+  status                 String    @default("trialing")
+  trialEnd               DateTime?
+  selectedNiches         String[]  @default([])
+  nicheLockedUntil       DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Bid {
-  id                 String    @id @default(cuid())
-  noticeId           String    @unique
-  title              String
-  solicitationNumber String?
-  agency             String?
-  naicsCode          String?
-  niche              String
-  postedDate         DateTime?
-  responseDeadline   DateTime?
-  setAside           String?
-  bidType            String?
-  uiLink             String?
-  placeStreet        String?
-  placeCity          String?
-  placeState         String?
-  placeZip           String?
-  placeCountry       String?
-  active             Boolean   @default(true)
-  syncedAt           DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  pursuits           Pursuit[]
+  id                     String                 @id @default(cuid())
+  noticeId               String                 @unique
+  title                  String
+  solicitationNumber     String?
+  agency                 String?
+  naicsCode              String?
+  niche                  String
+  postedDate             DateTime?
+  responseDeadline       DateTime?
+  setAside               String?
+  bidType                String?
+  uiLink                 String?
+  placeStreet            String?
+  placeCity              String?
+  placeState             String?
+  placeZip               String?
+  placeCountry           String?
+  active                 Boolean                @default(true)
+  syncedAt               DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  pursuits               Pursuit[]
+  notificationDeliveries NotificationDelivery[]
 
   @@index([niche])
   @@index([postedDate])
@@ -191,4 +195,54 @@ model QuoteDraft {
 
   @@unique([pursuitId, version])
   @@index([pursuitId, status])
+}
+
+model NotificationPreference {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  emailNewPosts      Boolean  @default(true)
+  emailDeadlines     Boolean  @default(true)
+  smsNewPosts        Boolean  @default(false)
+  smsDeadlines       Boolean  @default(false)
+  phone              String?
+  smsConsentAt       DateTime?
+  deadlineHours      Int[]    @default([168, 72, 24])
+  timezone           String   @default("UTC")
+  lastNewPostCheckAt DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CustomCategory {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  keywords    String[] @default([])
+  naicsCodes  String[] @default([])
+  states      String[] @default([])
+  agencies    String[] @default([])
+  active      Boolean  @default(true)
+  emailAlerts Boolean  @default(true)
+  smsAlerts   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, active])
+}
+
+model NotificationDelivery {
+  id         String   @id @default(cuid())
+  userId     String
+  bidId      String
+  kind       String
+  channel    String
+  triggerKey String
+  sentAt     DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bid        Bid      @relation(fields: [bidId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bidId, kind, channel, triggerKey])
+  @@index([userId, sentAt])
 }
