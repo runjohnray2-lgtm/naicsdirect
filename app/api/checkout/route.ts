@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/db"
+import { PLANS } from "@/lib/plans"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
@@ -11,21 +12,51 @@ export async function POST(req: Request) {
     }
 
     const { priceId } = await req.json()
-    if (!priceId) {
-      return NextResponse.json({ error: "Missing priceId" }, { status: 400 })
+    if (!priceId || !PLANS.some((plan) => plan.priceId === priceId)) {
+      return NextResponse.json({ error: "Invalid plan" }, { status: 400 })
     }
 
     const userId = session.user.id
     const email = session.user.email ?? undefined
 
-    // Get or create Stripe customer
-    let stripeCustomerId: string | undefined
-
     const existing = await prisma.subscription.findUnique({
       where: { userId },
-      select: { stripeCustomerId: true },
     })
 
+    // Existing paying customers should never create a second subscription just to change plans.
+    // Change the price on the current Stripe subscription and let the webhook keep the account in sync.
+    if (
+      existing?.stripeSubscriptionId &&
+      (existing.status === "active" || existing.status === "trialing")
+    ) {
+      if (existing.stripePriceId === priceId) {
+        return NextResponse.json({ url: "/account", unchanged: true })
+      }
+
+      const current = await stripe.subscriptions.retrieve(existing.stripeSubscriptionId)
+      const item = current.items.data[0]
+      if (!item) {
+        return NextResponse.json({ error: "Subscription has no billable item" }, { status: 409 })
+      }
+
+      const updated = await stripe.subscriptions.update(existing.stripeSubscriptionId, {
+        items: [{ id: item.id, price: priceId }],
+        proration_behavior: "create_prorations",
+      })
+
+      await prisma.subscription.update({
+        where: { userId },
+        data: {
+          stripePriceId: priceId,
+          stripeCurrentPeriodEnd: new Date(updated.current_period_end * 1000),
+          nicheLockedUntil: new Date(updated.current_period_end * 1000),
+        },
+      })
+
+      return NextResponse.json({ url: "/account?planChanged=true", changed: true })
+    }
+
+    let stripeCustomerId: string
     if (existing?.stripeCustomerId) {
       stripeCustomerId = existing.stripeCustomerId
     } else {
@@ -36,10 +67,6 @@ export async function POST(req: Request) {
       stripeCustomerId = customer.id
     }
 
-    // AUTH_URL is the Auth.js v5 env var this project actually sets (see auth.config.ts).
-    // NEXTAUTH_URL is the old v4 name and was never configured here - using it silently
-    // produced "undefined/account?success=true" as the Stripe redirect URL, which Stripe
-    // rejects, crashing this route with no error handling. Fixed both issues below.
     const baseUrl = process.env.AUTH_URL ?? "https://naicsdirect.com"
 
     const checkoutSession = await stripe.checkout.sessions.create({
