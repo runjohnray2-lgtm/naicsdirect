@@ -17,6 +17,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   if (category.agencies.length) {
     filters.push({ OR: category.agencies.map(agency => ({ agency: { contains: agency, mode: "insensitive" } })) })
   }
+  if (category.setAsides.length) {
+    filters.push({ OR: category.setAsides.map(setAside => ({ setAside: { contains: setAside, mode: "insensitive" } })) })
+  }
   if (category.keywords.length) {
     filters.push({
       OR: category.keywords.flatMap(keyword => [
@@ -24,6 +27,17 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
         { agency: { contains: keyword, mode: "insensitive" } },
         { solicitationNumber: { contains: keyword, mode: "insensitive" } },
       ]),
+    })
+  }
+  if (category.excludedKeywords.length) {
+    filters.push({
+      NOT: {
+        OR: category.excludedKeywords.flatMap(keyword => [
+          { title: { contains: keyword, mode: "insensitive" } },
+          { agency: { contains: keyword, mode: "insensitive" } },
+          { solicitationNumber: { contains: keyword, mode: "insensitive" } },
+        ]),
+      },
     })
   }
 
