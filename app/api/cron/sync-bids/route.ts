@@ -58,10 +58,18 @@ export async function GET(req: Request) {
           if (!opp.noticeId || seen.has(opp.noticeId)) continue
           seen.add(opp.noticeId)
 
+          const place = opp.placeOfPerformance
+          const placeStreet = [place?.streetAddress, place?.streetAddress2].filter(Boolean).join(", ") || null
+          const placeCity = place?.city?.name ?? null
+          const placeState = place?.state?.code ?? place?.state?.name ?? null
+          const placeZip = place?.zip ?? null
+          const placeCountry = place?.country?.code ?? place?.country?.name ?? null
+
           await prisma.bid.upsert({
             where: { noticeId: opp.noticeId },
             update: {
               title: opp.title,
+              solicitationNumber: opp.solicitationNumber ?? null,
               agency: opp.fullParentPathName ?? null,
               naicsCode: opp.naicsCode ?? naicsCode,
               niche: niche.id,
@@ -72,6 +80,11 @@ export async function GET(req: Request) {
               setAside: opp.typeOfSetAsideDescription ?? null,
               bidType: opp.type ?? null,
               uiLink: opp.uiLink ?? null,
+              placeStreet,
+              placeCity,
+              placeState,
+              placeZip,
+              placeCountry,
               active: true,
               updatedAt: new Date(),
             },
@@ -89,6 +102,11 @@ export async function GET(req: Request) {
               setAside: opp.typeOfSetAsideDescription ?? null,
               bidType: opp.type ?? null,
               uiLink: opp.uiLink ?? null,
+              placeStreet,
+              placeCity,
+              placeState,
+              placeZip,
+              placeCountry,
               active: true,
             },
           })
