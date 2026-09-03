@@ -16,18 +16,22 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const body = await req.json()
   const keywords = normalizeList(body.keywords)
+  const excludedKeywords = normalizeList(body.excludedKeywords)
   const naicsCodes = normalizeList(body.naicsCodes)
   const states = normalizeList(body.states)
   const agencies = normalizeList(body.agencies)
+  const setAsides = normalizeList(body.setAsides)
 
   const category = await prisma.customCategory.update({
     where: { id },
     data: {
       name: typeof body.name === "string" && body.name.trim() ? body.name.trim() : undefined,
       keywords,
+      excludedKeywords,
       naicsCodes,
       states: states?.map(v => v.toUpperCase()),
       agencies,
+      setAsides,
       active: typeof body.active === "boolean" ? body.active : undefined,
       emailAlerts: typeof body.emailAlerts === "boolean" ? body.emailAlerts : undefined,
       smsAlerts: typeof body.smsAlerts === "boolean" ? body.smsAlerts : undefined,
