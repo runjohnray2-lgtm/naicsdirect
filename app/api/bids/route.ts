@@ -18,8 +18,6 @@ export async function GET(request: NextRequest) {
   const entitlement = await getEntitlement(session?.user?.id)
 
   // Former subscribers do not regain a full feed after canceling or going past due.
-  // Their prior category selection stays on the account so reactivation resumes history,
-  // but full access requires an active or trialing paid period.
   if (session?.user?.id && !entitlement.isGated) {
     const sub = await prisma.subscription.findUnique({ where: { userId: session.user.id } })
     if (sub && sub.status !== "trialing" && sub.status !== "active") {
@@ -42,15 +40,11 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  // Public/no-subscription access is a demo, not a replacement for the paid feed.
   const isFreePreview = !entitlement.isGated
   const take = isFreePreview ? 5 : 50
   const effectivePage = isFreePreview ? 0 : page
 
   try {
-    // Radiantz is an internal cross-category watchlist. Query it by its complete
-    // NAICS set instead of relying on Bid.niche, because public customer niches
-    // intentionally own many of the same NAICS codes.
     const where = nicheId === "radiantz"
       ? { naicsCode: { in: NICHE_MAP.radiantz.naicsCodes }, active: true }
       : { niche: nicheId, active: true }
@@ -78,6 +72,11 @@ export async function GET(request: NextRequest) {
       setAside: b.setAside ?? "",
       uiLink: b.uiLink ?? "",
       naicsCode: b.naicsCode ?? "",
+      placeStreet: b.placeStreet ?? "",
+      placeCity: b.placeCity ?? "",
+      placeState: b.placeState ?? "",
+      placeZip: b.placeZip ?? "",
+      placeCountry: b.placeCountry ?? "",
       isActive: b.active,
       isDibbs: isDibbsPosting(b.agency, b.title),
     }))
