@@ -1,4 +1,5 @@
 import { auth } from "@/auth"
+import { prisma } from "@/lib/db"
 import { PLANS } from "@/lib/plans"
 import PricingCard from "@/components/pricing-card"
 import AppNav from "@/components/app-nav"
@@ -17,6 +18,12 @@ export default async function PricingPage({
   const session = await auth()
   const params = await searchParams
   const showCanceled = params.canceled === "true"
+  const subscription = session?.user?.id
+    ? await prisma.subscription.findUnique({ where: { userId: session.user.id } })
+    : null
+  const currentPriceId = subscription && (subscription.status === "active" || subscription.status === "trialing")
+    ? subscription.stripePriceId
+    : null
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -25,17 +32,13 @@ export default async function PricingPage({
       <div className="bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-800 py-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           {showCanceled && (
-            <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 text-sm text-amber-400">
-              Checkout was canceled. No charge was made.
-            </div>
+            <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 text-sm text-amber-400">Checkout was canceled. No charge was made.</div>
           )}
           <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-1.5 text-sm text-green-400 mb-6">
-            3-day free trial on all plans
+            {currentPriceId ? "Change plans without creating a second subscription" : "3-day free trial on all plans"}
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Find the Bid Early. Use the Time to Win It.</h1>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            Government bids take time. Suppliers take time. Subcontractors take time. NAICS Direct cuts through thousands of unrelated notices so you can find real opportunities sooner and start sourcing before the deadline becomes the problem.
-          </p>
+          <p className="text-lg text-slate-400 max-w-2xl mx-auto">Government bids take time. Suppliers take time. Subcontractors take time. NAICS Direct cuts through thousands of unrelated notices so you can find real opportunities sooner and start sourcing before the deadline becomes the problem.</p>
           <p className="text-sm text-slate-500 mt-5">Focused federal opportunity feeds • urgency filtering • historical award intelligence</p>
         </div>
       </div>
@@ -43,16 +46,19 @@ export default async function PricingPage({
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {PLANS.map((plan) => (
-            <PricingCard key={plan.id} plan={{ ...plan, features: [...plan.features] }} isLoggedIn={!!session} />
+            <PricingCard
+              key={plan.id}
+              plan={{ ...plan, features: [...plan.features] }}
+              isLoggedIn={!!session}
+              currentPriceId={currentPriceId}
+            />
           ))}
         </div>
 
         <div className="mt-16">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-white mb-2">Built for the Real Bid Timeline</h2>
-            <p className="text-sm text-slate-500 max-w-2xl mx-auto">
-              The advantage is not seeing more listings. It is finding the right opportunity early enough to research pricing, contact suppliers, line up subcontractors, and submit a compliant bid.
-            </p>
+            <p className="text-sm text-slate-500 max-w-2xl mx-auto">The advantage is not seeing more listings. It is finding the right opportunity early enough to research pricing, contact suppliers, line up subcontractors, and submit a compliant bid.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
             {[
@@ -91,7 +97,7 @@ export default async function PricingPage({
             { q: "Why does finding a bid early matter?", a: "Because a usable quote may require supplier pricing, subcontractor availability, financing checks, compliance research, and time for questions. More lead time gives you more options." },
             { q: "What is historical award intelligence?", a: "Past federal contract award information can help you research who has won similar work and the historical contract value. Historical totals are context, not a guaranteed future price or unit price." },
             { q: "How often is the opportunity data updated?", a: "SAM.gov opportunity data is refreshed every morning. Use the urgency filters to separate closing-soon notices from opportunities with enough time to pursue properly." },
-            { q: "Can I change plans?", a: "Yes. Compare plans from this page and manage billing from your Account page." },
+            { q: "Can I change plans?", a: "Yes. Existing subscribers can switch plans here without creating a second subscription. Billing is prorated by Stripe." },
           ].map((faq) => (
             <div key={faq.q} className="bg-slate-900 border border-slate-800 rounded-xl p-6">
               <p className="text-sm font-semibold text-white mb-2">{faq.q}</p>
@@ -102,9 +108,7 @@ export default async function PricingPage({
       </div>
 
       <footer className="border-t border-slate-800 py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <p className="text-xs text-slate-500">© 2026 NAICS Direct. All rights reserved.</p>
-        </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center"><p className="text-xs text-slate-500">© 2026 NAICS Direct. All rights reserved.</p></div>
       </footer>
     </div>
   )
