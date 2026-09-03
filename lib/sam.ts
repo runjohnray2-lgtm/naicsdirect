@@ -9,6 +9,14 @@ export interface SamOpportunity {
   type?: string
   typeOfSetAsideDescription?: string
   uiLink?: string
+  placeOfPerformance?: {
+    streetAddress?: string
+    streetAddress2?: string
+    city?: { code?: string; name?: string }
+    state?: { code?: string; name?: string }
+    country?: { code?: string; name?: string }
+    zip?: string
+  }
 }
 
 export function formatSamDate(date: Date): string {
@@ -46,9 +54,8 @@ export async function fetchOpportunitiesByNaics(
 
     const data = await res.json()
     const opportunities = (data.opportunitiesData ?? []) as SamOpportunity[]
-    // Defense-in-depth: SAM's API has previously ignored an unrecognized
-    // filter param and returned unfiltered results. Explicitly verify each
-    // result actually matches the requested NAICS code before accepting it.
+    // Defense-in-depth: explicitly verify the NAICS because SAM has previously
+    // returned unfiltered results when a request parameter was not recognized.
     return opportunities.filter((o) => o.naicsCode === naicsCode)
   } catch (err) {
     console.error(`SAM fetch failed for NAICS ${naicsCode}:`, err)
