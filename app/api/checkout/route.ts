@@ -75,7 +75,7 @@ export async function POST(req: Request) {
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       subscription_data: {
-        trial_period_days: 3,
+        trial_period_days: 7,
         metadata: { userId },
       },
       success_url: `${baseUrl}/account?success=true`,
