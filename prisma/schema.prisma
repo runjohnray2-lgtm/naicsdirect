@@ -19,6 +19,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   subscription  Subscription?
+  pursuits      Pursuit[]
 }
 
 model Account {
@@ -68,8 +69,7 @@ model Subscription {
   trialEnd                 DateTime?
   /// The niche IDs this subscriber has chosen to receive (must not exceed their plan's niche limit).
   selectedNiches           String[]  @default([])
-  /// While set in the future, the subscriber cannot change selectedNiches on their own.
-  /// Set to now() + 21 days whenever selectedNiches actually changes (add, remove, or swap).
+  /// Current-category access runs through the paid billing period. Swaps/removals are queued in Stripe metadata.
   nicheLockedUntil         DateTime?
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
@@ -92,9 +92,32 @@ model Bid {
   active             Boolean   @default(true)
   syncedAt           DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+  pursuits           Pursuit[]
 
   @@index([niche])
   @@index([postedDate])
   @@index([responseDeadline])
   @@index([active])
+}
+
+model Pursuit {
+  id                    String    @id @default(cuid())
+  userId                String
+  bidId                 String
+  decision              String    @default("WATCH")
+  stage                 String    @default("REVIEWING")
+  priority              String    @default("NORMAL")
+  notes                 String?
+  nextAction            String?
+  questionDeadline      DateTime?
+  supplierQuoteDeadline DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bid                    Bid       @relation(fields: [bidId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bidId])
+  @@index([userId, decision])
+  @@index([userId, stage])
+  @@index([supplierQuoteDeadline])
 }
