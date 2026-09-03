@@ -13,10 +13,11 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user
       // /dashboard itself is the public, no-signup-required live demo — anonymous
       // visitors can browse it (DIBBS bids show a blurred teaser until they sign up).
-      // Only the account page and the deeper server-rendered bids view require login.
+      // Only the account page, admin area, and deeper server-rendered bids view require login.
       const isProtectedRoute =
         nextUrl.pathname.startsWith("/dashboard/bids") ||
         nextUrl.pathname.startsWith("/account") ||
+        nextUrl.pathname.startsWith("/admin") ||
         nextUrl.pathname.startsWith("/radiantz-bids")
       if (isProtectedRoute && !isLoggedIn) return false
       return true
