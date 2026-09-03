@@ -67,9 +67,7 @@ model Subscription {
   stripeCurrentPeriodEnd   DateTime?
   status                   String    @default("trialing")
   trialEnd                 DateTime?
-  /// The niche IDs this subscriber has chosen to receive (must not exceed their plan's niche limit).
   selectedNiches           String[]  @default([])
-  /// Current-category access runs through the paid billing period. Swaps/removals are queued in Stripe metadata.
   nicheLockedUntil         DateTime?
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
@@ -89,6 +87,11 @@ model Bid {
   setAside           String?
   bidType            String?
   uiLink             String?
+  placeStreet        String?
+  placeCity          String?
+  placeState         String?
+  placeZip           String?
+  placeCountry       String?
   active             Boolean   @default(true)
   syncedAt           DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
@@ -98,26 +101,51 @@ model Bid {
   @@index([postedDate])
   @@index([responseDeadline])
   @@index([active])
+  @@index([placeCity, placeState])
 }
 
 model Pursuit {
-  id                    String    @id @default(cuid())
+  id                    String              @id @default(cuid())
   userId                String
   bidId                 String
-  decision              String    @default("WATCH")
-  stage                 String    @default("REVIEWING")
-  priority              String    @default("NORMAL")
+  decision              String              @default("WATCH")
+  stage                 String              @default("REVIEWING")
+  priority              String              @default("NORMAL")
   notes                 String?
   nextAction            String?
   questionDeadline      DateTime?
   supplierQuoteDeadline DateTime?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bid                    Bid       @relation(fields: [bidId], references: [id], onDelete: Cascade)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bid                    Bid                 @relation(fields: [bidId], references: [id], onDelete: Cascade)
+  suppliers              SupplierCandidate[]
 
   @@unique([userId, bidId])
   @@index([userId, decision])
   @@index([userId, stage])
   @@index([supplierQuoteDeadline])
+}
+
+model SupplierCandidate {
+  id            String   @id @default(cuid())
+  pursuitId     String
+  name          String
+  address       String?
+  city          String?
+  state         String?
+  phone         String?
+  email         String?
+  website       String?
+  source        String   @default("local-search")
+  sourceId      String?
+  distanceMiles Float?
+  status        String   @default("NEW")
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  pursuit       Pursuit  @relation(fields: [pursuitId], references: [id], onDelete: Cascade)
+
+  @@unique([pursuitId, name, address])
+  @@index([pursuitId, status])
 }
