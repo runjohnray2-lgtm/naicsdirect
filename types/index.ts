@@ -18,6 +18,7 @@ export interface Bid {
   placeCountry?: string
   isActive: boolean
   isDibbs: boolean
+  previewLocked?: boolean
 }
 
 export interface BidApiResponse {
