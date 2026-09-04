@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { ArrowRight, Bell, Check, FileText, Radio, Search, ShieldCheck, ShoppingCart, Zap } from "lucide-react"
+import { ArrowRight, Bell, Check, FileText, LockKeyhole, Radio, Search, ShieldCheck, ShoppingCart, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,6 +17,7 @@ interface SampleBid {
   postedDate: string | null
   responseDeadline: string | null
   setAside: string | null
+  locked?: boolean
 }
 
 interface PublicStats {
@@ -149,6 +150,23 @@ export default function LandingPage() {
             <div className="mt-8 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 divide-y divide-slate-800">
               {stats?.sample?.length ? stats.sample.map((bid, index) => {
                 const niche = NICHE_MAP[bid.niche]
+                if (bid.locked) {
+                  return (
+                    <div key={`locked-${index}`} className="relative flex min-h-[84px] flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0 flex-1" aria-hidden="true">
+                        <div className="h-4 w-2/3 max-w-xl rounded bg-slate-700/70" />
+                        <div className="mt-2 h-3 w-2/5 max-w-sm rounded bg-slate-800" />
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {niche && <Badge className={cn("border text-xs", niche.colorClass, niche.borderClass, niche.bgClass)}>{niche.emoji} {niche.name}</Badge>}
+                        <Link href="/pricing" className="inline-flex items-center gap-1.5 rounded-full border border-slate-600 bg-slate-800 px-3 py-1 text-xs font-medium text-slate-200 transition hover:border-indigo-500 hover:bg-indigo-500/10 hover:text-white">
+                          <LockKeyhole className="h-3 w-3" /> Preview locked
+                        </Link>
+                      </div>
+                    </div>
+                  )
+                }
+
                 return (
                   <div key={`${bid.title}-${index}`} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
@@ -163,7 +181,10 @@ export default function LandingPage() {
                 )
               }) : <div className="p-10 text-center text-sm text-slate-500">Loading live opportunities…</div>}
             </div>
-            <div className="mt-6 text-center"><Button variant="outline" className="border-slate-700 bg-slate-900 hover:bg-slate-800" asChild><Link href="/dashboard">Browse the live feed</Link></Button></div>
+            <div className="mt-5 rounded-lg border border-indigo-500/20 bg-indigo-500/5 px-4 py-3 text-center text-sm text-slate-300">
+              <span className="font-medium text-white">More matching opportunities are available.</span> Start the 7-day trial to view full bid details, deadlines, and pursuit tools.
+            </div>
+            <div className="mt-6 text-center"><Button variant="outline" className="border-slate-700 bg-slate-900 text-white hover:bg-slate-800" asChild><Link href="/dashboard">Browse the live feed</Link></Button></div>
           </div>
         </section>
 
@@ -176,13 +197,13 @@ export default function LandingPage() {
             {PLANS.map((plan) => (
               <Card key={plan.id} className={cn("border bg-slate-900", "popular" in plan && plan.popular ? "border-indigo-500" : "border-slate-800")}>
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-bold">{plan.name}</h3>
+                  <h3 className="text-lg font-bold text-white">{plan.name}</h3>
                   <p className="mt-1 min-h-10 text-sm text-slate-400">{plan.description}</p>
-                  <p className="mt-5"><span className="text-3xl font-bold">${plan.price}</span><span className="text-slate-500">/month</span></p>
+                  <p className="mt-5"><span className="text-3xl font-bold text-white">${plan.price}</span><span className="ml-1 text-slate-300">/month</span></p>
                   <ul className="mt-5 space-y-2 text-sm text-slate-300">
                     {plan.features.slice(0, 4).map((feature) => <li key={feature} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />{feature}</li>)}
                   </ul>
-                  <Button className="mt-6 w-full bg-indigo-600 hover:bg-indigo-500" asChild><Link href="/pricing">Start 7-Day Trial</Link></Button>
+                  <Button className="mt-6 w-full bg-indigo-600 text-white hover:bg-indigo-500" asChild><Link href="/pricing">Start 7-Day Trial</Link></Button>
                 </CardContent>
               </Card>
             ))}
