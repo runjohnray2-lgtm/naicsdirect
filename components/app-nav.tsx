@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useSession } from "next-auth/react"
-import { Crosshair, LayoutDashboard, UserRound, CreditCard, SlidersHorizontal } from "lucide-react"
+import { signOut, useSession } from "next-auth/react"
+import { Crosshair, LayoutDashboard, UserRound, CreditCard, SlidersHorizontal, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const links = [
@@ -50,6 +50,18 @@ export default function AppNav() {
 
         {status === "unauthenticated" && (
           <Link href="/auth/signin" className="text-sm text-slate-300 hover:text-white flex-shrink-0">Sign In</Link>
+        )}
+
+        {status === "authenticated" && (
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="inline-flex items-center gap-1.5 text-sm text-slate-300 hover:text-white flex-shrink-0 px-2 py-2 rounded-lg hover:bg-slate-800/70"
+            aria-label="Sign out"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Sign Out</span>
+          </button>
         )}
       </div>
     </header>
