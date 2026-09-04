@@ -2,21 +2,10 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 
 // Public, unauthenticated endpoint used by the landing page.
-// The free preview intentionally shows a couple of genuinely urgent opportunities
-// while masking later opportunities so visitors can see that more inventory
-// exists without giving away the paid feed.
+// Show a couple of genuinely urgent opportunities in full, then return
+// intentionally locked placeholders for additional inventory. Do not scramble
+// real titles/agencies: the UI renders clean skeleton rows instead.
 export const revalidate = 300 // cache 5 minutes
-
-function maskText(value: string | null) {
-  if (!value) return "Fe••••• op••••••••"
-  return value
-    .split(/\s+/)
-    .map((word) => {
-      if (word.length <= 2) return "•".repeat(word.length)
-      return `${word.slice(0, 2)}${"•".repeat(Math.min(word.length - 2, 8))}`
-    })
-    .join(" ")
-}
 
 function hoursUntil(date: Date | null) {
   if (!date) return null
@@ -56,8 +45,6 @@ export async function GET() {
         orderBy: { responseDeadline: "asc" },
         take: 3,
         select: {
-          title: true,
-          agency: true,
           niche: true,
           responseDeadline: true,
         },
@@ -73,23 +60,24 @@ export async function GET() {
       const hours = hoursUntil(bid.responseDeadline)
       return {
         ...bid,
+        locked: false,
         // In the free preview, urgency is more useful than the normal set-aside badge.
         setAside: hours ? `Due in ~${hours}h` : bid.setAside,
       }
     })
 
     const lockedPreview = later.map((bid) => ({
-      title: maskText(bid.title),
-      agency: maskText(bid.agency),
+      title: "",
+      agency: null,
       niche: bid.niche,
       postedDate: null,
       responseDeadline: bid.responseDeadline,
-      setAside: "🔒 Unlock full bid",
+      setAside: null,
+      locked: true,
     }))
 
     return NextResponse.json({
       totalActiveBids: total,
-      // Backward-compatible field consumed by the current landing page.
       sample: [...urgentPreview, ...lockedPreview],
       urgentSample: urgentPreview,
       lockedSample: lockedPreview,
