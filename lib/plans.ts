@@ -11,7 +11,8 @@ export const PLANS = [
       "Urgency filtering (closing soon, this week, open)",
       "Queue a category change for your next billing cycle",
     ] as string[],
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER ?? "",
+    // Verified live Stripe price for $14/month.
+    priceId: "price_1TmjBwK5DEMkaeXv2oy8Z41n",
     nicheLimit: 1,
     cta: "Start Free Trial",
   },
@@ -28,7 +29,8 @@ export const PLANS = [
       "Queue category changes for your next billing cycle",
       "Priority support",
     ] as string[],
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO ?? "",
+    // Verified live Stripe price for $29/month.
+    priceId: "price_1TmjBwK5DEMkaeXv5vnVB7Gl",
     nicheLimit: 3,
     popular: true,
     cta: "Start Free Trial",
@@ -45,7 +47,8 @@ export const PLANS = [
       "Urgency filtering (closing soon, this week, open)",
       "Dedicated support",
     ] as string[],
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS ?? "",
+    // Verified live Stripe price for $49/month.
+    priceId: "price_1TmjBwK5DEMkaeXvKWBRic1B",
     nicheLimit: 15,
     cta: "Start Free Trial",
   },
