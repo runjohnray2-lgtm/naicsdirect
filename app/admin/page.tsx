@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db"
 import { PLANS } from "@/lib/plans"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import AdminTestAlert from "@/components/admin-test-alert"
 
 export const metadata = {
   title: "Admin Dashboard — NAICS Direct",
@@ -16,7 +17,6 @@ function adminEmails() {
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)
 
-  // Owner fallback so the dashboard works immediately even before ADMIN_EMAILS is configured.
   return new Set([...configured, "agent@radiantz.com"])
 }
 
@@ -139,9 +139,7 @@ export default async function AdminPage() {
                         <div className="text-xs text-slate-400">{user.email}</div>
                       </td>
                       <td className="px-5 py-4 text-slate-300">{plan?.name ?? (subscription ? "Unknown plan" : "No plan")}</td>
-                      <td className="px-5 py-4">
-                        <Status value={subscription?.status ?? "no subscription"} />
-                      </td>
+                      <td className="px-5 py-4"><Status value={subscription?.status ?? "no subscription"} /></td>
                       <td className="px-5 py-4 text-slate-300">{date(billingDate)}</td>
                       <td className="px-5 py-4 text-slate-300">{user._count.pursuits}</td>
                       <td className="px-5 py-4 text-slate-300">{subscription?.selectedNiches.length ?? user._count.customCategories}</td>
@@ -151,9 +149,7 @@ export default async function AdminPage() {
                   )
                 })}
                 {users.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="px-5 py-12 text-center text-slate-500">No customers yet.</td>
-                  </tr>
+                  <tr><td colSpan={8} className="px-5 py-12 text-center text-slate-500">No customers yet.</td></tr>
                 )}
               </tbody>
             </table>
@@ -173,12 +169,7 @@ export default async function AdminPage() {
             ["Active bid records", String(activeBids)],
             ["Registered users", String(totalUsers)],
           ]} />
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <h2 className="font-semibold">Next admin tools</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
-              Customer detail pages, support notes, subscription actions, failed-payment follow-up, usage charts, search/filter/export, and Stripe revenue reconciliation can be added on top of this dashboard.
-            </p>
-          </div>
+          <AdminTestAlert />
         </section>
       </div>
     </main>
