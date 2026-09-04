@@ -73,6 +73,7 @@ export async function POST(req: Request) {
       stripeCustomerId = customer.id
     }
 
+    // This deployment intentionally refreshes the runtime environment after Stripe secret rotation.
     const baseUrl = process.env.AUTH_URL ?? "https://naicsdirect.com"
 
     const checkoutSession = await stripe.checkout.sessions.create({
