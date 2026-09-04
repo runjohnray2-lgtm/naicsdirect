@@ -108,11 +108,14 @@ model Bid {
   solicitationNumber     String?
   agency                 String?
   naicsCode              String?
+  classificationCode     String?
   niche                  String
   postedDate             DateTime?
+  sourceModifiedAt       DateTime?
   responseDeadline       DateTime?
   setAside               String?
   bidType                String?
+  baseType               String?
   uiLink                 String?
   placeStreet            String?
   placeCity              String?
@@ -128,6 +131,7 @@ model Bid {
 
   @@index([niche])
   @@index([postedDate])
+  @@index([sourceModifiedAt])
   @@index([responseDeadline])
   @@index([active])
   @@index([placeCity, placeState])
@@ -136,6 +140,7 @@ model Bid {
 model BidChange {
   id         String   @id @default(cuid())
   bidId      String
+  changeType String
   field      String
   oldValue   String?
   newValue   String?
@@ -143,6 +148,7 @@ model BidChange {
   bid        Bid      @relation(fields: [bidId], references: [id], onDelete: Cascade)
 
   @@index([bidId, detectedAt])
+  @@index([changeType, detectedAt])
   @@index([field, detectedAt])
 }
 
