@@ -7,6 +7,7 @@ import NicheManager from "@/components/niche-manager"
 import NotificationSettings from "@/components/notification-settings"
 import CustomCategories from "@/components/custom-categories"
 import AppNav from "@/components/app-nav"
+import ConversionTracker from "@/components/conversion-tracker"
 
 export const metadata = {
   title: "Account — NAICS Direct",
@@ -30,6 +31,8 @@ export default async function AccountPage({
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
+      {showSuccess && <ConversionTracker event="trial_start" params={{ source: "stripe_checkout" }} />}
+      {showPlanChanged && <ConversionTracker event="plan_change" params={{ source: "pricing" }} />}
       <AppNav />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
