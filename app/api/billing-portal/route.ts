@@ -3,6 +3,51 @@ import { auth } from "@/auth"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/db"
 
+async function getOrCreatePortalConfiguration() {
+  const existing = await stripe.billingPortal.configurations.list({
+    active: true,
+    limit: 1,
+  })
+
+  if (existing.data[0]) return existing.data[0].id
+
+  const configuration = await stripe.billingPortal.configurations.create({
+    business_profile: {
+      headline: "Manage your NAICS Direct subscription",
+      privacy_policy_url: "https://naicsdirect.com/privacy",
+      terms_of_service_url: "https://naicsdirect.com/terms",
+    },
+    features: {
+      customer_update: {
+        enabled: true,
+        allowed_updates: ["email", "address"],
+      },
+      payment_method_update: {
+        enabled: true,
+      },
+      subscription_cancel: {
+        enabled: true,
+        mode: "at_period_end",
+        cancellation_reason: {
+          enabled: true,
+          options: [
+            "too_expensive",
+            "missing_features",
+            "switched_service",
+            "unused",
+            "other",
+          ],
+        },
+      },
+      invoice_history: {
+        enabled: true,
+      },
+    },
+  })
+
+  return configuration.id
+}
+
 export async function POST() {
   try {
     const session = await auth()
@@ -21,13 +66,12 @@ export async function POST() {
       )
     }
 
-    // AUTH_URL is the Auth.js v5 env var this project actually sets (see auth.config.ts).
-    // NEXT_PUBLIC_APP_URL was never configured, which produced "undefined/account" as the
-    // Stripe portal return_url - same root cause as the checkout route bug.
     const baseUrl = process.env.AUTH_URL ?? "https://naicsdirect.com"
+    const configuration = await getOrCreatePortalConfiguration()
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: subscription.stripeCustomerId,
+      configuration,
       return_url: `${baseUrl}/account`,
     })
 
