@@ -37,10 +37,12 @@ export default function PricingCard({
   currentPriceId?: string | null
 }) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const isCurrent = Boolean(currentPriceId && currentPriceId === plan.priceId)
 
   const handleClick = async () => {
+    setError(null)
     track("select_plan", { plan_id: plan.id, plan_name: plan.name, value: plan.price, currency: "USD" })
 
     if (isCurrent) {
@@ -54,7 +56,7 @@ export default function PricingCard({
     }
 
     if (!plan.priceId) {
-      alert("Plan not yet configured. Contact support@naicsdirect.com")
+      setError("This plan is not configured yet. Please contact support@naicsdirect.com.")
       return
     }
 
@@ -66,16 +68,27 @@ export default function PricingCard({
         body: JSON.stringify({ priceId: plan.priceId }),
       })
 
-      const data = await res.json()
+      let data: { url?: string; error?: string } = {}
+      try {
+        data = await res.json()
+      } catch {
+        throw new Error(`Checkout returned HTTP ${res.status}`)
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || `Checkout returned HTTP ${res.status}`)
+      }
+
       if (data.url) {
         track("begin_checkout", { plan_id: plan.id, plan_name: plan.name, value: plan.price, currency: "USD" })
         window.location.href = data.url
       } else {
-        throw new Error(data.error || "Failed to change plan")
+        throw new Error(data.error || "Checkout did not return a payment page")
       }
     } catch (err) {
       console.error(err)
-      alert("Something went wrong. Please try again.")
+      const message = err instanceof Error ? err.message : "Unable to start checkout"
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -116,6 +129,12 @@ export default function PricingCard({
           </li>
         ))}
       </ul>
+
+      {error && (
+        <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300" role="alert">
+          {error}
+        </div>
+      )}
 
       <button
         onClick={handleClick}
