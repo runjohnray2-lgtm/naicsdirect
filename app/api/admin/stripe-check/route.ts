@@ -1,8 +1,17 @@
+import { auth } from "@/auth"
 import { stripe } from "@/lib/stripe"
 import { NextResponse } from "next/server"
 import { PLANS } from "@/lib/plans"
 
+const ADMIN_EMAILS = new Set(["agent@radiantz.com", "ray@radiantz.com"])
+
 export async function GET() {
+  const session = await auth()
+  const email = session?.user?.email?.toLowerCase()
+  if (!email || !ADMIN_EMAILS.has(email)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const key = process.env.STRIPE_SECRET_KEY ?? ""
   const keyMode = key.startsWith("sk_live_") ? "live" : key.startsWith("sk_test_") ? "test" : key ? "unknown" : "missing"
 
@@ -19,11 +28,7 @@ export async function GET() {
         currency: price.currency,
       })
     } catch (error) {
-      prices.push({
-        plan: plan.name,
-        found: false,
-        errorType: error instanceof Error ? error.name : "UnknownError",
-      })
+      prices.push({ plan: plan.name, found: false, errorType: error instanceof Error ? error.name : "UnknownError" })
     }
   }
 
