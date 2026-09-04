@@ -9,8 +9,6 @@ export async function POST(req: Request) {
     const session = await auth()
     const sessionEmail = session?.user?.email?.toLowerCase() ?? null
 
-    // Some older JWT sessions were issued before the user id was copied into the token.
-    // They are still valid authenticated sessions, so recover the database user by email.
     let userId = session?.user?.id ?? null
     if (!userId && sessionEmail) {
       const user = await prisma.user.findUnique({
@@ -31,9 +29,7 @@ export async function POST(req: Request) {
 
     const email = sessionEmail ?? undefined
 
-    const existing = await prisma.subscription.findUnique({
-      where: { userId },
-    })
+    const existing = await prisma.subscription.findUnique({ where: { userId } })
 
     if (
       existing?.stripeSubscriptionId &&
@@ -96,7 +92,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: checkoutSession.url })
   } catch (error) {
     console.error("Checkout API error:", error)
-    const message = error instanceof Error ? error.message : "Failed to start checkout"
-    return NextResponse.json({ error: message }, { status: 500 })
+    const raw = error instanceof Error ? error.message : ""
+    const configurationError = /api key|authentication|stripe/i.test(raw)
+    return NextResponse.json(
+      { error: configurationError ? "Payment service is temporarily unavailable. Please contact support." : "Unable to start checkout. Please try again." },
+      { status: 500 }
+    )
   }
 }
