@@ -16,46 +16,51 @@ export default function TermsPage() {
           <section>
             <h2 className="text-white font-semibold text-lg mb-2">What NAICS Direct is</h2>
             <p>
-              NAICS Direct is a subscription service that filters publicly available U.S. federal contract
-              opportunity data (sourced from SAM.gov's public API) by industry, so contractors can find
-              relevant bids without sifting through unrelated listings. We do not submit bids on your
-              behalf, and we do not guarantee that any bid shown will result in a contract award.
+              NAICS Direct is a subscription service that helps small contractors and suppliers find,
+              organize, research, source, price, and pursue publicly available U.S. federal contract
+              opportunities. Opportunity data is sourced from SAM.gov's public API and related public
+              government sources. We do not guarantee that any opportunity shown will result in a contract
+              award, and the authoritative solicitation and agency instructions always control.
             </p>
           </section>
 
           <section>
-            <h2 className="text-white font-semibold text-lg mb-2">Accounts &amp; subscriptions</h2>
+            <h2 className="text-white font-semibold text-lg mb-2">Accounts, free trial &amp; subscriptions</h2>
             <p>
-              You need an account to access filtered dashboards and alerts. Paid plans are billed monthly
-              through Stripe and can be canceled at any time — you will retain access through the end of
-              your current billing period. There are no long-term contracts.
+              You need an account to access subscriber features. New paid-plan signups currently include a
+              7-day free trial and require a payment method at checkout. Unless you cancel before the trial
+              ends, Stripe will automatically begin monthly billing at the price of the plan you selected.
+              Paid plans renew monthly until canceled. There are no long-term contracts.
             </p>
           </section>
 
           <section>
-            <h2 className="text-white font-semibold text-lg mb-2">Data accuracy</h2>
+            <h2 className="text-white font-semibold text-lg mb-2">Data accuracy &amp; solicitation review</h2>
             <p>
-              We pull data directly from SAM.gov's public API and do our best to keep it current, but we
+              We pull opportunity data from public government sources and work to keep it current, but we
               cannot guarantee that every listing is complete, accurate, or up to date at the moment you
-              view it. Always verify solicitation details directly on SAM.gov before submitting a bid or
-              making a business decision.
+              view it. Always verify the full authoritative posting before acting. A complete bid review may
+              require reading every linked solicitation page, attachment, amendment, Q&amp;A, specification,
+              drawing, clause, form, delivery requirement, and submission instruction.
             </p>
           </section>
 
           <section>
             <h2 className="text-white font-semibold text-lg mb-2">Acceptable use</h2>
             <p>
-              You agree not to scrape, resell, or redistribute the filtered data or platform content in
-              bulk, and not to attempt to circumvent account or payment restrictions.
+              You agree not to scrape, resell, or redistribute the filtered platform content in bulk, and
+              not to attempt to circumvent account, access, or payment restrictions.
             </p>
           </section>
 
           <section>
             <h2 className="text-white font-semibold text-lg mb-2">Cancellation &amp; refunds</h2>
             <p>
-              You can cancel anytime from your account or by emailing us. Since plans are billed monthly
-              with no lock-in contract, we don't offer prorated refunds for partial months, but we'll work
-              with you in good faith on billing issues — just reach out.
+              You can cancel from your NAICS Direct account billing controls. Cancellation is effective at
+              the end of the current trial or paid billing period, as applicable. Canceling during the free
+              trial before the trial ends prevents the first subscription charge. For paid months, we do not
+              normally provide prorated refunds for unused partial periods, but contact us if you believe a
+              billing error occurred.
             </p>
           </section>
 
@@ -63,15 +68,16 @@ export default function TermsPage() {
             <h2 className="text-white font-semibold text-lg mb-2">Limitation of liability</h2>
             <p>
               NAICS Direct is provided "as is." We are not liable for business decisions made based on data
-              shown on the platform, including missed bids, inaccurate listings, or downtime. Our total
-              liability to you is limited to the amount you paid us in the past 3 months.
+              shown on the platform, including missed bids, inaccurate listings, supplier decisions, bid
+              outcomes, or downtime. To the extent permitted by law, our total liability to you is limited
+              to the amount you paid us in the past 3 months.
             </p>
           </section>
 
           <section>
             <h2 className="text-white font-semibold text-lg mb-2">Changes to these terms</h2>
             <p>
-              We may update these terms as the product evolves. We'll post the updated date at the top of
+              We may update these terms as the product evolves. We will post the updated date at the top of
               this page. Continued use of NAICS Direct after changes means you accept the updated terms.
             </p>
           </section>
