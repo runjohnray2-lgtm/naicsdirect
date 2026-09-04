@@ -17,7 +17,7 @@ function adminEmails() {
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)
 
-  return new Set([...configured, "agent@radiantz.com"])
+  return new Set([...configured, "agent@radiantz.com", "ray@radiantz.com"])
 }
 
 function planForPriceId(priceId: string | null) {
