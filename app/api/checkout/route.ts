@@ -7,7 +7,20 @@ import { NextResponse } from "next/server"
 export async function POST(req: Request) {
   try {
     const session = await auth()
-    if (!session?.user?.id) {
+    const sessionEmail = session?.user?.email?.toLowerCase() ?? null
+
+    // Some older JWT sessions were issued before the user id was copied into the token.
+    // They are still valid authenticated sessions, so recover the database user by email.
+    let userId = session?.user?.id ?? null
+    if (!userId && sessionEmail) {
+      const user = await prisma.user.findUnique({
+        where: { email: sessionEmail },
+        select: { id: true },
+      })
+      userId = user?.id ?? null
+    }
+
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -16,15 +29,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 })
     }
 
-    const userId = session.user.id
-    const email = session.user.email ?? undefined
+    const email = sessionEmail ?? undefined
 
     const existing = await prisma.subscription.findUnique({
       where: { userId },
     })
 
-    // Existing paying customers should never create a second subscription just to change plans.
-    // Change the price on the current Stripe subscription and let the webhook keep the account in sync.
     if (
       existing?.stripeSubscriptionId &&
       (existing.status === "active" || existing.status === "trialing")
