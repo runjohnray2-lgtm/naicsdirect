@@ -5,13 +5,19 @@ import { BLOG_POSTS } from "@/lib/blog-posts"
 export const metadata: Metadata = {
   title: "Federal Contracting Guides | NAICS Direct Blog",
   description:
-    "Plain-English guides to SAM.gov, DIBBS, and federal contracting for small businesses — written by a small business that actually bids on these contracts.",
+    "Plain-English guides to SAM.gov, DIBBS, federal contracting rules, and small-business bidding — written for contractors actually pursuing federal work.",
   alternates: {
     canonical: "https://naicsdirect.com/blog",
   },
 }
 
 const FEATURED_GUIDES = [
+  {
+    slug: "sba-size-standards-2026-federal-contracting",
+    title: "2026 SBA Size Standard Proposal: What Federal Contractors Should Watch",
+    publishedDate: "2026-09-07",
+    dek: "A proposed SBA overhaul could change who qualifies as small for federal contracting — reshaping set-aside competition and NAICS-based eligibility.",
+  },
   {
     slug: "how-to-search-sam-gov-without-wasting-hours",
     title: "How to Search SAM.gov Without Wasting Hours",
@@ -70,7 +76,7 @@ export default function BlogIndexPage() {
             Federal Contracting Guides
           </h1>
           <p className="text-xl text-slate-400 max-w-2xl">
-            Plain-English guides to SAM.gov, DIBBS, and federal contracting — written from the perspective of a small business doing the work, not a generic content farm.
+            Practical federal contracting guidance, rule changes, and pursuit workflows for small businesses trying to win real work — not just browse listings.
           </p>
         </section>
 
