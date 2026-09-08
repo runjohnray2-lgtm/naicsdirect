@@ -60,6 +60,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
     {
+      url: `${base}/blog/sba-size-standards-2026-federal-contracting`,
+      lastModified: new Date("2026-09-07"),
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
       url: `${base}/blog/how-to-search-sam-gov-without-wasting-hours`,
       lastModified: new Date("2026-09-03"),
       changeFrequency: "monthly",
