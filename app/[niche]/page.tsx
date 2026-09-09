@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { NICHES, PUBLIC_NICHES } from "@/lib/niches"
-import { NICHE_SEO } from "@/lib/niche-seo"
+import { NICHE_SEO, type NicheSEO } from "@/lib/niche-seo"
 import { EXTRA_NICHE_SEO } from "@/lib/niche-seo-extra"
 import { prisma } from "@/lib/db"
 
@@ -10,8 +10,27 @@ export const revalidate = 3600
 
 interface Props { params: Promise<{ niche: string }> }
 
+function normalizeNicheSEO(seo: NicheSEO): NicheSEO {
+  const metaDescription = seo.metaDescription
+    .replace(/\s*Free to browse\.\s*$/i, " Start with a 7-day free trial.")
+    .replace(/\s*Free\.\s*$/i, " Start with a 7-day free trial.")
+
+  const faqs = seo.faqs.map((faq) => {
+    if (/is NAICS Direct free to use\?/i.test(faq.q)) {
+      return {
+        q: "How much does NAICS Direct cost?",
+        a: "Plans start at $14/month and every plan includes a 7-day free trial. See the pricing page for current plan limits and features.",
+      }
+    }
+    return faq
+  })
+
+  return { ...seo, metaDescription, faqs }
+}
+
 function getNicheSEO(niche: string) {
-  return NICHE_SEO[niche] ?? EXTRA_NICHE_SEO[niche]
+  const seo = NICHE_SEO[niche] ?? EXTRA_NICHE_SEO[niche]
+  return seo ? normalizeNicheSEO(seo) : undefined
 }
 
 export async function generateStaticParams() {
