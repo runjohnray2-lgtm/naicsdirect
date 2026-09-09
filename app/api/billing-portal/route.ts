@@ -11,39 +11,42 @@ async function getOrCreatePortalConfiguration() {
 
   if (existing.data[0]) return existing.data[0].id
 
-  const configuration = await stripe.billingPortal.configurations.create({
-    business_profile: {
-      headline: "Manage your NAICS Direct subscription",
-      privacy_policy_url: "https://naicsdirect.com/privacy",
-      terms_of_service_url: "https://naicsdirect.com/terms",
-    },
-    features: {
-      customer_update: {
-        enabled: true,
-        allowed_updates: ["email", "address"],
+  const configuration = await stripe.billingPortal.configurations.create(
+    {
+      business_profile: {
+        headline: "Manage your NAICS Direct subscription",
+        privacy_policy_url: "https://naicsdirect.com/privacy",
+        terms_of_service_url: "https://naicsdirect.com/terms",
       },
-      payment_method_update: {
-        enabled: true,
-      },
-      subscription_cancel: {
-        enabled: true,
-        mode: "at_period_end",
-        cancellation_reason: {
+      features: {
+        customer_update: {
           enabled: true,
-          options: [
-            "too_expensive",
-            "missing_features",
-            "switched_service",
-            "unused",
-            "other",
-          ],
+          allowed_updates: ["email", "address"],
+        },
+        payment_method_update: {
+          enabled: true,
+        },
+        subscription_cancel: {
+          enabled: true,
+          mode: "at_period_end",
+          cancellation_reason: {
+            enabled: true,
+            options: [
+              "too_expensive",
+              "missing_features",
+              "switched_service",
+              "unused",
+              "other",
+            ],
+          },
+        },
+        invoice_history: {
+          enabled: true,
         },
       },
-      invoice_history: {
-        enabled: true,
-      },
     },
-  })
+    { idempotencyKey: "naics-direct-customer-portal-v1" }
+  )
 
   return configuration.id
 }
@@ -51,12 +54,23 @@ async function getOrCreatePortalConfiguration() {
 export async function POST() {
   try {
     const session = await auth()
-    if (!session?.user?.id) {
+    const sessionEmail = session?.user?.email?.toLowerCase() ?? null
+
+    let userId = session?.user?.id ?? null
+    if (!userId && sessionEmail) {
+      const user = await prisma.user.findUnique({
+        where: { email: sessionEmail },
+        select: { id: true },
+      })
+      userId = user?.id ?? null
+    }
+
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const subscription = await prisma.subscription.findUnique({
-      where: { userId: session.user.id },
+      where: { userId },
     })
 
     if (!subscription?.stripeCustomerId) {
@@ -78,7 +92,9 @@ export async function POST() {
     return NextResponse.json({ url: portalSession.url })
   } catch (error) {
     console.error("Billing portal error:", error)
-    const message = error instanceof Error ? error.message : "Internal server error"
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json(
+      { error: "Unable to open billing. Please try again." },
+      { status: 500 }
+    )
   }
 }
