@@ -8,6 +8,8 @@ import NotificationSettings from "@/components/notification-settings"
 import CustomCategories from "@/components/custom-categories"
 import AppNav from "@/components/app-nav"
 import ConversionTracker from "@/components/conversion-tracker"
+import { stripe } from "@/lib/stripe"
+import CheckoutStatus from "@/components/checkout-status"
 
 export const metadata = {
   title: "Account — NAICS Direct",
@@ -16,7 +18,7 @@ export const metadata = {
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string; planChanged?: string }>
+  searchParams: Promise<{ success?: string; planChanged?: string; session_id?: string }>
 }) {
   const session = await auth()
   const sessionEmail = session?.user?.email?.toLowerCase() ?? null
@@ -34,12 +36,27 @@ export default async function AccountPage({
   if (!userId) redirect("/auth/signin?callbackUrl=/account")
 
   const params = await searchParams
-  const showSuccess = params.success === "true"
+  const returnedFromCheckout = params.success === "true"
   const showPlanChanged = params.planChanged === "true"
 
   const subscription = await prisma.subscription.findUnique({
     where: { userId },
   })
+  let checkoutSubscriptionId: string | null = null
+  if (returnedFromCheckout && params.session_id?.startsWith("cs_")) {
+    try {
+      const checkout = await stripe.checkout.sessions.retrieve(params.session_id)
+      if (checkout.status === "complete" && checkout.metadata?.userId === userId) {
+        checkoutSubscriptionId = typeof checkout.subscription === "string"
+          ? checkout.subscription : checkout.subscription?.id ?? null
+      }
+    } catch {
+      // Billing verification must not prevent access to the rest of the account.
+      console.error("Could not verify checkout return")
+    }
+  }
+  const showSuccess = !!checkoutSubscriptionId && checkoutSubscriptionId === subscription?.stripeSubscriptionId &&
+    (subscription.status === "active" || subscription.status === "trialing")
 
   const trialDaysRemaining =
     subscription?.status === "trialing" && subscription.trialEnd
@@ -53,17 +70,17 @@ export default async function AccountPage({
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      {showSuccess && <ConversionTracker event="trial_start" params={{ source: "stripe_checkout" }} />}
-      {showPlanChanged && <ConversionTracker event="plan_change" params={{ source: "pricing" }} />}
+      {showSuccess && subscription?.status === "trialing" && subscription.stripeSubscriptionId && <ConversionTracker event="trial_start" eventId={subscription.stripeSubscriptionId} params={{ source: "stripe_checkout" }} />}
       <AppNav />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
         <h1 className="text-3xl font-bold text-white mb-2">Your Account</h1>
         <p className="text-slate-400 mb-10">Manage your company profile, service, billing, bid alerts, and personal categories.</p>
+        {returnedFromCheckout && !showSuccess && <CheckoutStatus verified={!!checkoutSubscriptionId} />}
 
         {showSuccess && (
           <div className="mb-8 bg-green-500/10 border border-green-500/20 rounded-xl px-6 py-4 text-sm text-green-400">
-            Welcome to NAICS Direct. Complete your federal quote profile, then choose your categories and alert preferences below.
+            Welcome to NAICS Direct. Choose your categories below, then open your bid feed. You can add your company profile when you are ready to build a quote.
           </div>
         )}
         {showPlanChanged && (
@@ -91,10 +108,10 @@ export default async function AccountPage({
                 : null
             }
           />
-          <CompanyProfile />
-          <NotificationSettings />
-          <CustomCategories />
           <NicheManager />
+          <NotificationSettings />
+          <CompanyProfile />
+          <CustomCategories />
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { PUBLIC_NICHES } from "@/lib/niches"
+import Link from "next/link"
 
 interface EntitlementState {
   isGated: boolean
@@ -37,7 +38,10 @@ export default function NicheManager() {
 
   useEffect(() => {
     fetch("/api/account/niches")
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Couldn't load your category settings.")
+        return res.json()
+      })
       .then((data: EntitlementState) => {
         setEntitlement(data)
         setPicked(data.pendingNiches?.length ? data.pendingNiches : data.selectedNiches)
@@ -55,7 +59,7 @@ export default function NicheManager() {
   }
 
   if (!entitlement || !entitlement.isGated) {
-    return null
+    return error ? <p role="alert" className="text-red-300 text-sm">{error} Refresh the page to try again.</p> : null
   }
 
   const isFirstPick = entitlement.selectedNiches.length === 0
@@ -199,6 +203,9 @@ export default function NicheManager() {
               ? "Add Categories Now"
               : "Queue for Next Billing Cycle"}
       </button>
+      {entitlement.selectedNiches.length > 0 && (
+        <Link href="/dashboard" className="block text-center mt-4 text-sm font-semibold text-indigo-300 hover:text-white">Browse Your Bids →</Link>
+      )}
     </div>
   )
 }

@@ -230,7 +230,7 @@ function DashboardContent() {
           {!loading && !error && displayBids.length > 0 && (
             <div className="space-y-3">
               {displayBids.map(bid => <BidCard key={bid.id} bid={bid} locked={bid.isDibbs && !isLoggedIn} />)}
-              <div className="text-center pt-4"><p className="text-slate-600 text-xs">Showing {displayBids.length} of {openCount} active bids{filterBucket ? " (filtered)" : ""}</p><p className="text-slate-700 text-xs mt-1">Data sourced from SAM.gov · synced daily at 7 AM Pacific.</p></div>
+              <div className="text-center pt-4"><p className="text-slate-600 text-xs">Showing {displayBids.length} of {openCount} active bids{filterBucket ? " (filtered)" : ""}</p><p className="text-slate-700 text-xs mt-1">Data sourced from SAM.gov · synced daily.</p></div>
             </div>
           )}
         </main>

@@ -8,7 +8,8 @@ import { getEntitlement } from "@/lib/entitlement"
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const nicheId = searchParams.get("niche") || ""
-  const page = parseInt(searchParams.get("page") || "0", 10)
+  const requestedPage = Number(searchParams.get("page") || "0")
+  const page = Number.isSafeInteger(requestedPage) && requestedPage >= 0 ? requestedPage : 0
   const niche = NICHE_MAP[nicheId]
 
   if (!niche) {
@@ -51,9 +52,13 @@ export async function GET(request: NextRequest) {
   const effectivePage = isFreePreview ? 0 : page
 
   try {
-    const where = nicheId === "radiantz"
+    const categoryWhere = nicheId === "radiantz"
       ? { naicsCode: { in: NICHE_MAP.radiantz.naicsCodes }, active: true }
       : { niche: nicheId, active: true }
+    const where = {
+      ...categoryWhere,
+      OR: [{ responseDeadline: null }, { responseDeadline: { gt: new Date() } }],
+    }
 
     const [rawBids, total] = await Promise.all([
       prisma.bid.findMany({
