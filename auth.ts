@@ -12,6 +12,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   providers: [
     Resend({
+      maxAge: 10 * 60,
       apiKey: process.env.AUTH_RESEND_KEY,
       // Use `||` (not `??`) so a blank/empty env var still falls back to the default sender.
       from: process.env.EMAIL_FROM || "NAICS Direct <noreply@naicsdirect.com>",

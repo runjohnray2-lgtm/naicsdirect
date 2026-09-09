@@ -17,10 +17,13 @@ function htmlEscape(value: string) {
 async function sendEmail(to: string, subject: string, lines: string[]) {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.ALERT_EMAIL_FROM || "NAICS Direct <alerts@naicsdirect.com>"
-  if (!apiKey) return { sent: false, reason: "RESEND_API_KEY not configured" }
+  if (!apiKey) throw new Error("RESEND_API_KEY not configured")
   const resend = new Resend(apiKey)
   const html = `<div style="font-family:Arial,sans-serif;line-height:1.5;color:#111"><h2>${htmlEscape(subject)}</h2><ul>${lines.map(line => `<li style="margin-bottom:10px">${htmlEscape(line)}</li>`).join("")}</ul><p><a href="https://naicsdirect.com/categories">Open My Categories</a></p></div>`
-  await resend.emails.send({ from, to, subject, html })
+  const result = await resend.emails.send({ from, to, subject, html })
+  if (result.error || !result.data?.id) {
+    throw new Error(result.error?.message || "Email service did not accept the alert")
+  }
   return { sent: true }
 }
 
@@ -64,7 +67,7 @@ function customCategoryMatches(category: CategoryRule, bid: MatchBid) {
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization")
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -98,10 +101,12 @@ export async function GET(req: Request) {
       const recentBids = await prisma.bid.findMany({
         where: {
           active: true,
-          postedDate: { gt: since },
+          // syncedAt records first discovery; SAM's posting date can predate
+          // the previous run even when this bid has only just reached our feed.
+          syncedAt: { gt: since, lte: now },
+          OR: [{ responseDeadline: null }, { responseDeadline: { gt: now } }],
         },
-        orderBy: { postedDate: "desc" },
-        take: 250,
+        orderBy: { syncedAt: "asc" },
       })
 
       const selectedNiches = user.subscription?.selectedNiches || []
@@ -122,12 +127,13 @@ export async function GET(req: Request) {
           })
           if (!exists) unsent.push(bid)
         }
-        if (unsent.length) {
-          const result = await sendEmail(user.email, `${unsent.length} new government bid${unsent.length === 1 ? "" : "s"} matched your feed`, unsent.slice(0, 25).map(bidLine))
+        for (let offset = 0; offset < unsent.length; offset += 25) {
+          const batch = unsent.slice(offset, offset + 25)
+          const result = await sendEmail(user.email, `${batch.length} new government bid${batch.length === 1 ? "" : "s"} matched your feed`, batch.map(bidLine))
           if (result.sent) {
             emailsSent++
             await prisma.notificationDelivery.createMany({
-              data: unsent.map(bid => ({ userId: user.id, bidId: bid.id, kind: "NEW_POST", channel: "EMAIL", triggerKey: "posted" })),
+              data: batch.map(bid => ({ userId: user.id, bidId: bid.id, kind: "NEW_POST", channel: "EMAIL", triggerKey: "posted" })),
               skipDuplicates: true,
             })
           }
@@ -145,6 +151,7 @@ export async function GET(req: Request) {
         if (unsent.length) {
           const body = `NAICS Direct: ${unsent.length} new matching bid${unsent.length === 1 ? "" : "s"}. ${unsent[0].title.slice(0, 100)}. Open: https://naicsdirect.com/categories`
           const result = await sendSms(pref.phone, body)
+          if (!result.sent) throw new Error("SMS service did not accept the new-bid alert")
           if (result.sent) {
             smsSent++
             await prisma.notificationDelivery.createMany({
@@ -162,7 +169,7 @@ export async function GET(req: Request) {
 
         for (const threshold of pref.deadlineHours) {
           if (hoursLeft > threshold || hoursLeft <= threshold - 24) continue
-          const triggerKey = `${threshold}h`
+          const triggerKey = `${deadline.toISOString()}:${threshold}h`
 
           if (pref.emailDeadlines) {
             const exists = await prisma.notificationDelivery.findUnique({
@@ -183,6 +190,7 @@ export async function GET(req: Request) {
             })
             if (!exists) {
               const result = await sendSms(pref.phone, `NAICS Direct deadline: ${pursuit.bid.title.slice(0, 110)} is due ${deadline.toLocaleDateString("en-US")}. https://naicsdirect.com/pursuits`)
+              if (!result.sent) throw new Error("SMS service did not accept the deadline alert")
               if (result.sent) {
                 smsSent++
                 await prisma.notificationDelivery.create({ data: { userId: user.id, bidId: pursuit.bid.id, kind: "DEADLINE", channel: "SMS", triggerKey } })
@@ -198,5 +206,5 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ success: true, usersChecked, emailsSent, smsSent, errors: errors.slice(0, 20), checkedAt: now.toISOString() })
+  return NextResponse.json({ success: errors.length === 0, usersChecked, emailsSent, smsSent, errors: errors.slice(0, 20), checkedAt: now.toISOString() }, { status: errors.length ? 502 : 200 })
 }

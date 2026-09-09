@@ -18,7 +18,7 @@ export async function GET() {
     const in48Hours = new Date(now.getTime() + 48 * 60 * 60 * 1000)
 
     const [total, urgent, later, lastSynced] = await Promise.all([
-      prisma.bid.count({ where: { active: true, niche: { not: "radiantz" } } }),
+      prisma.bid.count({ where: { active: true, niche: { not: "radiantz" }, OR: [{ responseDeadline: null }, { responseDeadline: { gt: now } }] } }),
       prisma.bid.findMany({
         where: {
           active: true,

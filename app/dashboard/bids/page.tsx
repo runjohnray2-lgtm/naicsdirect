@@ -3,6 +3,7 @@ import Link from "next/link"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
 import { NICHES, PUBLIC_NICHES, NICHE_MAP } from "@/lib/niches"
+import { getEntitlement } from "@/lib/entitlement"
 
 export const dynamic = "force-dynamic"
 
@@ -58,12 +59,17 @@ export default async function BidsPage({
   if (!session?.user) redirect("/auth/signin")
 
   const { niche: nicheParam } = await searchParams
-  const activeNiche = nicheParam && NICHE_MAP[nicheParam] ? nicheParam : "flooring"
+  const entitlement = await getEntitlement(session.user.id)
+  if (!entitlement.isGated) redirect("/dashboard")
+  if (!entitlement.selectedNiches.length) redirect("/account")
+  const activeNiche = nicheParam && NICHE_MAP[nicheParam] ? nicheParam : entitlement.allowedNicheIds[0]
+  if (!entitlement.allowedNicheIds.includes(activeNiche)) redirect("/account")
 
   const bids = await prisma.bid.findMany({
     where: {
       niche: activeNiche,
       active: true,
+      OR: [{ responseDeadline: null }, { responseDeadline: { gt: new Date() } }],
     },
     orderBy: { responseDeadline: "asc" },
     take: 50,
@@ -89,12 +95,6 @@ export default async function BidsPage({
               )}
             </h1>
           </div>
-          <Link
-            href="/api/cron/sync-bids"
-            className="text-xs text-slate-400 hover:text-white border border-slate-700 hover:border-slate-500 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            ↻ Sync Now
-          </Link>
         </div>
       </div>
 

@@ -13,7 +13,7 @@ export const metadata = {
 export default async function PricingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ canceled?: string }>
+  searchParams: Promise<{ canceled?: string; plan?: string }>
 }) {
   const session = await auth()
   const params = await searchParams
@@ -51,6 +51,7 @@ export default async function PricingPage({
               plan={{ ...plan, features: [...plan.features] }}
               isLoggedIn={!!session}
               currentPriceId={currentPriceId}
+              selected={params.plan === plan.id}
             />
           ))}
         </div>

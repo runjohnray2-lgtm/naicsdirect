@@ -31,10 +31,12 @@ export default function PricingCard({
   plan,
   isLoggedIn,
   currentPriceId,
+  selected = false,
 }: {
   plan: Plan
   isLoggedIn: boolean
   currentPriceId?: string | null
+  selected?: boolean
 }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -51,7 +53,7 @@ export default function PricingCard({
     }
 
     if (!isLoggedIn) {
-      router.push(`/auth/signin?callbackUrl=/pricing`)
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(`/pricing?plan=${plan.id}`)}`)
       return
     }
 
@@ -101,7 +103,7 @@ export default function PricingCard({
       : plan.cta
 
   return (
-    <div className={`relative bg-slate-900 border rounded-2xl p-8 flex flex-col ${plan.popular ? "border-indigo-500 ring-2 ring-indigo-500/30" : "border-slate-800"}`}>
+    <div className={`relative bg-slate-900 border rounded-2xl p-8 flex flex-col ${selected || plan.popular ? "border-indigo-500 ring-2 ring-indigo-500/30" : "border-slate-800"}`}>
       {plan.popular && (
         <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
           <span className="bg-indigo-600 text-white text-xs font-semibold px-4 py-1 rounded-full">Most Popular</span>
@@ -109,6 +111,7 @@ export default function PricingCard({
       )}
 
       <div className="mb-6">
+        {selected && <p className="text-sm text-indigo-300 mb-3">Your selected plan — continue below</p>}
         <div className="flex items-center gap-2 mb-1">
           <h3 className="text-lg font-bold text-white">{plan.name}</h3>
           {isCurrent && <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">Your plan</span>}
@@ -147,7 +150,7 @@ export default function PricingCard({
               : "bg-slate-800 hover:bg-slate-700 text-white border border-slate-700"
         }`}
       >
-        {loading ? "Updating plan..." : buttonLabel}
+        {loading ? (currentPriceId ? "Updating plan..." : "Opening secure checkout...") : buttonLabel}
       </button>
     </div>
   )
