@@ -8,7 +8,7 @@ function isAdmin(email: string | null | undefined) {
     .split(",")
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)
-  return new Set([...configured, "agent@radiantz.com"]).has(email.toLowerCase())
+  return new Set([...configured, "agent@radiantz.com", "ray@radiantz.com"]).has(email.toLowerCase())
 }
 
 export async function POST() {
