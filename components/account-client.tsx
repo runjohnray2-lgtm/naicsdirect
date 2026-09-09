@@ -40,27 +40,42 @@ function formatDate(iso: string) {
 export default function AccountClient({
   user,
   subscription,
+  trialDaysRemaining,
 }: {
   user: { email: string; name: string | null }
   subscription: Subscription | null
+  trialDaysRemaining: number | null
 }) {
   const [portalLoading, setPortalLoading] = useState(false)
+  const [portalError, setPortalError] = useState("")
 
   const currentPlan = PLANS.find((p) => p.priceId === subscription?.stripePriceId)
   const periodEnd = subscription?.stripeCurrentPeriodEnd ?? subscription?.trialEnd ?? null
 
   const handleBillingPortal = async () => {
     setPortalLoading(true)
+    setPortalError("")
     try {
       const res = await fetch("/api/billing-portal", { method: "POST" })
       const data = await res.json()
-      if (data.url) window.location.href = data.url
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || "Unable to open billing. Please try again.")
+      }
+      window.location.href = data.url
     } catch (err) {
       console.error(err)
+      setPortalError(err instanceof Error ? err.message : "Unable to open billing. Please try again.")
     } finally {
       setPortalLoading(false)
     }
   }
+
+  const trialLabel =
+    trialDaysRemaining === null
+      ? null
+      : trialDaysRemaining === 0
+        ? "Trial ends today"
+        : `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} remaining`
 
   return (
     <div className="space-y-6">
@@ -112,9 +127,16 @@ export default function AccountClient({
               </div>
               <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4">
                 <p className="text-[11px] uppercase tracking-wide text-slate-500">
-                  {subscription.status === "canceled" ? "Access through" : subscription.status === "trialing" ? "Trial ends" : "Next billing date"}
+                  {subscription.status === "canceled" ? "Access through" : subscription.status === "trialing" ? "Free trial" : "Current period ends"}
                 </p>
-                <p className="text-white font-semibold text-sm mt-2">{periodEnd ? formatDate(periodEnd) : "Not available"}</p>
+                {subscription.status === "trialing" && trialLabel ? (
+                  <>
+                    <p className="text-white font-semibold text-lg mt-1">{trialLabel}</p>
+                    <p className="text-slate-500 text-sm">{subscription.trialEnd ? `Ends ${formatDate(subscription.trialEnd)}` : ""}</p>
+                  </>
+                ) : (
+                  <p className="text-white font-semibold text-sm mt-2">{periodEnd ? formatDate(periodEnd) : "Not available"}</p>
+                )}
               </div>
             </div>
 
@@ -149,6 +171,9 @@ export default function AccountClient({
                 {portalLoading ? "Loading..." : "Manage Billing & Payment"}
               </button>
             </div>
+            {portalError && (
+              <p className="text-sm text-amber-400" role="alert">{portalError}</p>
+            )}
           </div>
         )}
       </div>
