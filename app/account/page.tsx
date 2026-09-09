@@ -19,15 +19,36 @@ export default async function AccountPage({
   searchParams: Promise<{ success?: string; planChanged?: string }>
 }) {
   const session = await auth()
-  if (!session?.user?.id) redirect("/auth/signin?callbackUrl=/account")
+  const sessionEmail = session?.user?.email?.toLowerCase() ?? null
+
+  let userId = session?.user?.id ?? null
+  if (!userId && sessionEmail) {
+    const user = await prisma.user.findUnique({
+      where: { email: sessionEmail },
+      select: { id: true },
+    })
+    userId = user?.id ?? null
+  }
+
+  if (!userId) redirect("/auth/signin?callbackUrl=/account")
 
   const params = await searchParams
   const showSuccess = params.success === "true"
   const showPlanChanged = params.planChanged === "true"
 
   const subscription = await prisma.subscription.findUnique({
-    where: { userId: session.user.id },
+    where: { userId },
   })
+
+  const trialDaysRemaining =
+    subscription?.status === "trialing" && subscription.trialEnd
+      ? Math.max(
+          0,
+          Math.ceil(
+            (subscription.trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+          )
+        )
+      : null
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -56,6 +77,7 @@ export default async function AccountPage({
               email: session.user.email!,
               name: session.user.name ?? null,
             }}
+            trialDaysRemaining={trialDaysRemaining}
             subscription={
               subscription
                 ? {
