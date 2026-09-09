@@ -20,9 +20,10 @@ export default async function AccountPage({
 }) {
   const session = await auth()
   const sessionEmail = session?.user?.email?.toLowerCase() ?? null
+  if (!sessionEmail) redirect("/auth/signin?callbackUrl=/account")
 
   let userId = session?.user?.id ?? null
-  if (!userId && sessionEmail) {
+  if (!userId) {
     const user = await prisma.user.findUnique({
       where: { email: sessionEmail },
       select: { id: true },
@@ -74,8 +75,8 @@ export default async function AccountPage({
         <div className="space-y-6">
           <AccountClient
             user={{
-              email: session.user.email!,
-              name: session.user.name ?? null,
+              email: sessionEmail,
+              name: session?.user?.name ?? null,
             }}
             trialDaysRemaining={trialDaysRemaining}
             subscription={
