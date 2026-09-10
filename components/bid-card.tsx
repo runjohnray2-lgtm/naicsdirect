@@ -26,6 +26,8 @@ interface BidCardProps {
   bid: Bid
   /** Used for anonymous DIBBS details. Free-preview locking is carried on bid.previewLocked. */
   locked?: boolean
+  /** Keeps a real preview visible while reserving Watch/Pursue/Pass for active subscribers. */
+  actionsLocked?: boolean
 }
 
 type Decision = "WATCH" | "PURSUE" | "PASS"
@@ -79,7 +81,7 @@ function typeConfig(code: string) {
   return map[code] || "bg-slate-500/20 text-slate-300 border-slate-500/30"
 }
 
-export function BidCard({ bid, locked = false }: BidCardProps) {
+export function BidCard({ bid, locked = false, actionsLocked = false }: BidCardProps) {
   const { status } = useSession()
   const [savingDecision, setSavingDecision] = useState<Decision | null>(null)
   const [savedDecision, setSavedDecision] = useState<Decision | null>(null)
@@ -215,7 +217,11 @@ export function BidCard({ bid, locked = false }: BidCardProps) {
                 )}
 
                 <div className="mt-3 pt-3 border-t border-slate-800 flex flex-wrap items-center gap-2">
-                  {status === "authenticated" ? (
+                  {actionsLocked ? (
+                    <Button size="sm" className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500" asChild>
+                      <Link href="/pricing"><Lock className="w-3 h-3 mr-1.5" /> Start a Plan to Watch or Pursue</Link>
+                    </Button>
+                  ) : status === "authenticated" ? (
                     <>
                       <Button size="sm" variant="outline" className="h-7 text-xs border-slate-700 text-slate-300 hover:bg-slate-800 gap-1.5" disabled={savingDecision !== null} onClick={() => saveDecision("WATCH")}>
                         {savingDecision === "WATCH" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Eye className="w-3 h-3" />} Watch
