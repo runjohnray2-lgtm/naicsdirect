@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
+import { getEntitlement } from "@/lib/entitlement"
 
 const VALID_DECISIONS = new Set(["WATCH", "PURSUE", "PASS"])
 
@@ -21,14 +22,38 @@ const pursuitInclude = {
   },
 }
 
-export async function GET() {
+async function getActiveUserId() {
   const session = await auth()
-  if (!session?.user?.id) {
+  const sessionEmail = session?.user?.email?.toLowerCase() ?? null
+  let userId = session?.user?.id ?? null
+
+  if (!userId && sessionEmail) {
+    const user = await prisma.user.findUnique({
+      where: { email: sessionEmail },
+      select: { id: true },
+    })
+    userId = user?.id ?? null
+  }
+
+  if (!userId) return { userId: null, entitled: false }
+  const entitlement = await getEntitlement(userId)
+  return { userId, entitled: entitlement.isGated }
+}
+
+export async function GET() {
+  const { userId, entitled } = await getActiveUserId()
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (!entitled) {
+    return NextResponse.json(
+      { error: "An active NAICS Direct subscription is required to use pursuit tools." },
+      { status: 403 }
+    )
   }
 
   const pursuits = await prisma.pursuit.findMany({
-    where: { userId: session.user.id },
+    where: { userId },
     include: pursuitInclude,
     orderBy: [
       { decision: "asc" },
@@ -41,9 +66,15 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await auth()
-  if (!session?.user?.id) {
+  const { userId, entitled } = await getActiveUserId()
+  if (!userId) {
     return NextResponse.json({ error: "Sign in to save bids" }, { status: 401 })
+  }
+  if (!entitled) {
+    return NextResponse.json(
+      { error: "Start a plan to Watch, Pursue, or Pass opportunities." },
+      { status: 403 }
+    )
   }
 
   const body = (await req.json()) as { bidId?: string; decision?: string }
@@ -62,12 +93,12 @@ export async function POST(req: Request) {
   const pursuit = await prisma.pursuit.upsert({
     where: {
       userId_bidId: {
-        userId: session.user.id,
+        userId,
         bidId: bid.id,
       },
     },
     create: {
-      userId: session.user.id,
+      userId,
       bidId: bid.id,
       decision,
       stage: stageForDecision(decision),
