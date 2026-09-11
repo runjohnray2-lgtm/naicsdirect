@@ -96,6 +96,17 @@ export default async function NicheLandingPage({ params }: Props) {
           { "@type": "ListItem", position: 2, name: nicheData.name, item: pageUrl },
         ],
       },
+      {
+        "@type": "FAQPage",
+        mainEntity: seo.faqs.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: a,
+          },
+        })),
+      },
       ...(activeBids.length ? [{
         "@type": "ItemList",
         name: `Current ${nicheData.name} federal contract opportunities`,
