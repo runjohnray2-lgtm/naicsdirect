@@ -167,13 +167,13 @@ export default async function BlogPostPage({ params }: Props) {
               See live federal bids in your exact industry
             </h2>
             <p className="text-slate-400 mb-6">
-              NAICS Direct filters SAM.gov to your NAICS codes. Free to browse, no signup required.
+              Preview live opportunities, then start a 7-day free trial to unlock the full bid feed and pursuit tools.
             </p>
             <Link
-              href="/dashboard"
+              href="/pricing"
               className="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-8 py-3 rounded-xl transition-colors"
             >
-              Browse Live Bids Free
+              Start 7-Day Free Trial
             </Link>
           </div>
         </article>
