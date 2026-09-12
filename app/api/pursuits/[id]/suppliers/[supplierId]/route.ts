@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
+import { getPaidPursuitUserId } from "@/lib/pursuit-access"
 
 const VALID_STATUSES = new Set(["NEW", "CONTACTED", "REPLIED", "QUOTED", "DECLINED", "BACKUP", "SELECTED"])
 
@@ -8,15 +8,18 @@ export async function PATCH(
   req: Request,
   context: { params: Promise<{ id: string; supplierId: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const access = await getPaidPursuitUserId()
+  if (!access.authenticated || !access.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (!access.entitled) {
+    return NextResponse.json({ error: "An active subscription is required to manage suppliers." }, { status: 403 })
+  }
 
   const { id, supplierId } = await context.params
   const supplier = await prisma.supplierCandidate.findFirst({
     where: {
       id: supplierId,
       pursuitId: id,
-      pursuit: { userId: session.user.id },
+      pursuit: { userId: access.userId },
     },
   })
   if (!supplier) return NextResponse.json({ error: "Supplier not found" }, { status: 404 })
