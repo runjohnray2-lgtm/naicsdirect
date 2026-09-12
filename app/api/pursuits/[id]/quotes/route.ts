@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
+import { getPaidPursuitUserId } from "@/lib/pursuit-access"
 
 function cleanText(value: unknown, fallback: string) {
   if (typeof value !== "string") return fallback
@@ -13,16 +13,30 @@ function safeValidity(value: unknown) {
   return Number.isFinite(number) && number >= 1 && number <= 120 ? number : 30
 }
 
+async function paidUser() {
+  const access = await getPaidPursuitUserId()
+  if (!access.authenticated || !access.userId) {
+    return { userId: null, response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+  }
+  if (!access.entitled) {
+    return {
+      userId: null,
+      response: NextResponse.json({ error: "An active subscription is required to use the quote builder." }, { status: 403 }),
+    }
+  }
+  return { userId: access.userId, response: null }
+}
+
 export async function GET(
   _req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const access = await paidUser()
+  if (!access.userId) return access.response!
 
   const { id } = await context.params
   const pursuit = await prisma.pursuit.findFirst({
-    where: { id, userId: session.user.id },
+    where: { id, userId: access.userId },
     select: { id: true },
   })
   if (!pursuit) return NextResponse.json({ error: "Pursuit not found" }, { status: 404 })
@@ -38,16 +52,17 @@ export async function POST(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const access = await paidUser()
+  if (!access.userId) return access.response!
 
   const { id } = await context.params
-  const [pursuit, companyProfile] = await Promise.all([
+  const [pursuit, companyProfile, user] = await Promise.all([
     prisma.pursuit.findFirst({
-      where: { id, userId: session.user.id },
+      where: { id, userId: access.userId },
       include: { bid: true, estimate: true },
     }),
-    prisma.companyProfile.findUnique({ where: { userId: session.user.id } }),
+    prisma.companyProfile.findUnique({ where: { userId: access.userId } }),
+    prisma.user.findUnique({ where: { id: access.userId }, select: { email: true, name: true } }),
   ])
   if (!pursuit) return NextResponse.json({ error: "Pursuit not found" }, { status: 404 })
   if (!pursuit.estimate || pursuit.estimate.recommendedPrice <= 0) {
@@ -63,10 +78,6 @@ export async function POST(
     )
   }
 
-  // SECURITY BOUNDARY: the quote is constructed only from public/customer-safe bid fields,
-  // the saved company identity, user-entered customer-facing text, and the final selling price.
-  // Supplier costs, margin percentage, financing costs, contingency, internal notes, and
-  // supplier identities are intentionally excluded.
   const body = await req.json().catch(() => ({})) as Record<string, unknown>
   const solicitationRef = pursuit.bid.solicitationNumber || pursuit.bid.noticeId
   const place = [pursuit.bid.placeCity, pursuit.bid.placeState].filter(Boolean).join(", ")
@@ -101,9 +112,9 @@ export async function POST(
     zip: companyProfile.zip,
     country: companyProfile.country,
     phone: companyProfile.phone,
-    quoteEmail: companyProfile.quoteEmail || session.user.email,
+    quoteEmail: companyProfile.quoteEmail || user?.email || null,
     website: companyProfile.website,
-    contactName: companyProfile.contactName || session.user.name,
+    contactName: companyProfile.contactName || user?.name || null,
     remitTo: companyProfile.remitTo,
   }
 
