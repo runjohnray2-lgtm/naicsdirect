@@ -63,15 +63,19 @@ function customCategoryMatches(category: CategoryRule, bid: MatchBid) {
 }
 
 export async function GET(req: Request) {
+  const cronSecret = process.env.CRON_SECRET
   const authHeader = req.headers.get("authorization")
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const now = new Date()
   const fallbackSince = new Date(now.getTime() - 24 * 60 * 60 * 1000)
   const users = await prisma.user.findMany({
-    where: { notificationPreference: { isNot: null } },
+    where: {
+      notificationPreference: { isNot: null },
+      subscription: { is: { status: { in: ["trialing", "active"] } } },
+    },
     include: {
       notificationPreference: true,
       subscription: true,
@@ -158,31 +162,28 @@ export async function GET(req: Request) {
       for (const pursuit of user.pursuits) {
         const deadline = pursuit.bid.responseDeadline
         if (!deadline || deadline <= now) continue
-        const hoursLeft = (deadline.getTime() - now.getTime()) / 3600000
-
+        const hoursLeft = Math.ceil((deadline.getTime() - now.getTime()) / 3600000)
         for (const threshold of pref.deadlineHours) {
-          if (hoursLeft > threshold || hoursLeft <= threshold - 24) continue
-          const triggerKey = `${threshold}h`
-
+          if (hoursLeft > threshold || hoursLeft < threshold - 24) continue
+          const triggerKey = String(threshold)
           if (pref.emailDeadlines) {
             const exists = await prisma.notificationDelivery.findUnique({
               where: { userId_bidId_kind_channel_triggerKey: { userId: user.id, bidId: pursuit.bid.id, kind: "DEADLINE", channel: "EMAIL", triggerKey } },
             })
             if (!exists) {
-              const result = await sendEmail(user.email, `Bid deadline reminder: ${pursuit.bid.title}`, [bidLine(pursuit.bid)])
+              const result = await sendEmail(user.email, `Bid deadline: ${pursuit.bid.title}`, [bidLine(pursuit.bid)])
               if (result.sent) {
                 emailsSent++
                 await prisma.notificationDelivery.create({ data: { userId: user.id, bidId: pursuit.bid.id, kind: "DEADLINE", channel: "EMAIL", triggerKey } })
               }
             }
           }
-
           if (pref.smsDeadlines && pref.phone) {
             const exists = await prisma.notificationDelivery.findUnique({
               where: { userId_bidId_kind_channel_triggerKey: { userId: user.id, bidId: pursuit.bid.id, kind: "DEADLINE", channel: "SMS", triggerKey } },
             })
             if (!exists) {
-              const result = await sendSms(pref.phone, `NAICS Direct deadline: ${pursuit.bid.title.slice(0, 110)} is due ${deadline.toLocaleDateString("en-US")}. https://naicsdirect.com/pursuits`)
+              const result = await sendSms(pref.phone, `NAICS Direct: ${pursuit.bid.title.slice(0, 100)} closes ${deadline.toLocaleString("en-US")}.`)
               if (result.sent) {
                 smsSent++
                 await prisma.notificationDelivery.create({ data: { userId: user.id, bidId: pursuit.bid.id, kind: "DEADLINE", channel: "SMS", triggerKey } })
@@ -192,11 +193,15 @@ export async function GET(req: Request) {
         }
       }
 
-      await prisma.notificationPreference.update({ where: { userId: user.id }, data: { lastNewPostCheckAt: now } })
+      await prisma.notificationPreference.update({
+        where: { userId: user.id },
+        data: { lastNewPostCheckAt: now },
+      })
     } catch (error) {
-      errors.push(`${user.id}: ${error instanceof Error ? error.message : "Unknown error"}`)
+      console.error(`Alert run failed for user ${user.id}`, error)
+      errors.push(user.id)
     }
   }
 
-  return NextResponse.json({ success: true, usersChecked, emailsSent, smsSent, errors: errors.slice(0, 20), checkedAt: now.toISOString() })
+  return NextResponse.json({ success: true, usersChecked, emailsSent, smsSent, errors: errors.length })
 }
