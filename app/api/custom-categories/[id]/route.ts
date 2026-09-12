@@ -1,17 +1,31 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
+import { getPaidPursuitUserId } from "@/lib/pursuit-access"
 
 function normalizeList(value: unknown) {
   if (!Array.isArray(value)) return undefined
   return [...new Set(value.map(v => String(v).trim()).filter(Boolean))]
 }
 
+async function paidUserId() {
+  const access = await getPaidPursuitUserId()
+  if (!access.authenticated || !access.userId) {
+    return { userId: null, response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+  }
+  if (!access.entitled) {
+    return {
+      userId: null,
+      response: NextResponse.json({ error: "Start a plan to manage personal bid categories." }, { status: 403 }),
+    }
+  }
+  return { userId: access.userId, response: null }
+}
+
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const access = await paidUserId()
+  if (!access.userId) return access.response!
   const { id } = await params
-  const existing = await prisma.customCategory.findFirst({ where: { id, userId: session.user.id } })
+  const existing = await prisma.customCategory.findFirst({ where: { id, userId: access.userId } })
   if (!existing) return NextResponse.json({ error: "Category not found" }, { status: 404 })
 
   const body = await req.json()
@@ -41,10 +55,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const access = await paidUserId()
+  if (!access.userId) return access.response!
   const { id } = await params
-  const existing = await prisma.customCategory.findFirst({ where: { id, userId: session.user.id } })
+  const existing = await prisma.customCategory.findFirst({ where: { id, userId: access.userId } })
   if (!existing) return NextResponse.json({ error: "Category not found" }, { status: 404 })
   await prisma.customCategory.delete({ where: { id } })
   return NextResponse.json({ success: true })
