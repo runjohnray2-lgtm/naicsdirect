@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 import AccountClient from "@/components/account-client"
 import CompanyProfile from "@/components/company-profile"
 import NicheManager from "@/components/niche-manager"
@@ -40,6 +41,7 @@ export default async function AccountPage({
   const subscription = await prisma.subscription.findUnique({
     where: { userId },
   })
+  const hasAccess = subscription?.status === "trialing" || subscription?.status === "active"
 
   const trialDaysRemaining =
     subscription?.status === "trialing" && subscription.trialEnd
@@ -92,9 +94,23 @@ export default async function AccountPage({
             }
           />
           <CompanyProfile />
-          <NotificationSettings />
-          <CustomCategories />
-          <NicheManager />
+          {hasAccess ? (
+            <>
+              <NotificationSettings />
+              <CustomCategories />
+              <NicheManager />
+            </>
+          ) : (
+            <section className="bg-slate-900 border border-indigo-500/20 rounded-2xl p-6 text-center">
+              <h2 className="text-white font-semibold">Subscriber tools unlock with your trial</h2>
+              <p className="text-sm text-slate-400 mt-2 max-w-xl mx-auto">
+                Start a plan to choose your bid categories, create personal filters, receive matching alerts, and use pursuit, supplier, pricing, and quote-building tools.
+              </p>
+              <Link href="/pricing" className="inline-block mt-5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors">
+                Start 7-Day Free Trial
+              </Link>
+            </section>
+          )}
         </div>
       </div>
     </div>
