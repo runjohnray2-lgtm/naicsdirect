@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { formatSamDate } from "@/lib/sam"
+import { getPaidPursuitUserId } from "@/lib/pursuit-access"
 
 export const dynamic = "force-dynamic"
 
 export async function GET(req: NextRequest) {
+  const access = await getPaidPursuitUserId()
+  if (!access.authenticated || !access.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (!access.entitled) return NextResponse.json({ error: "Start a plan to use solicitation research." }, { status: 403 })
+
   const apiKey = process.env.SAM_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: "SAM_API_KEY not configured" }, { status: 500 })
@@ -33,9 +38,8 @@ export async function GET(req: NextRequest) {
   })
 
   if (!response.ok) {
-    const detail = await response.text().catch(() => "")
     return NextResponse.json(
-      { error: `SAM API returned ${response.status}`, detail: detail.slice(0, 1000) },
+      { error: `SAM API returned ${response.status}` },
       { status: response.status }
     )
   }
