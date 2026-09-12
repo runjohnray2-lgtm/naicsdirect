@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
 import { isDibbsPosting } from "@/lib/dibbs"
+import { getPaidPursuitUserId } from "@/lib/pursuit-access"
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const access = await getPaidPursuitUserId()
+  if (!access.authenticated || !access.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (!access.entitled) {
+    return NextResponse.json({ error: "Start a plan to use personal bid feeds." }, { status: 403 })
+  }
   const { id } = await params
 
-  const category = await prisma.customCategory.findFirst({ where: { id, userId: session.user.id } })
+  const category = await prisma.customCategory.findFirst({ where: { id, userId: access.userId } })
   if (!category) return NextResponse.json({ error: "Category not found" }, { status: 404 })
 
   const filters: Record<string, unknown>[] = [{ active: true }]
