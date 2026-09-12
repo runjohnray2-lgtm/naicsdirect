@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
+import { getPaidPursuitUserId } from "@/lib/pursuit-access"
 
 const VALID_STAGES = new Set([
   "WATCHING",
@@ -47,16 +47,33 @@ function parseOptionalDate(value: unknown) {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed
 }
 
+async function requirePaidUser() {
+  const access = await getPaidPursuitUserId()
+  if (!access.authenticated || !access.userId) {
+    return { userId: null, response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+  }
+  if (!access.entitled) {
+    return {
+      userId: null,
+      response: NextResponse.json(
+        { error: "An active NAICS Direct subscription is required to use pursuit tools." },
+        { status: 403 }
+      ),
+    }
+  }
+  return { userId: access.userId, response: null }
+}
+
 export async function GET(
   _req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const access = await requirePaidUser()
+  if (!access.userId) return access.response!
 
   const { id } = await context.params
   const pursuit = await prisma.pursuit.findFirst({
-    where: { id, userId: session.user.id },
+    where: { id, userId: access.userId },
     include: detailInclude,
   })
   if (!pursuit) return NextResponse.json({ error: "Pursuit not found" }, { status: 404 })
@@ -68,11 +85,11 @@ export async function PATCH(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const access = await requirePaidUser()
+  if (!access.userId) return access.response!
 
   const { id } = await context.params
-  const current = await prisma.pursuit.findFirst({ where: { id, userId: session.user.id } })
+  const current = await prisma.pursuit.findFirst({ where: { id, userId: access.userId } })
   if (!current) return NextResponse.json({ error: "Pursuit not found" }, { status: 404 })
 
   const body = (await req.json()) as Record<string, unknown>
