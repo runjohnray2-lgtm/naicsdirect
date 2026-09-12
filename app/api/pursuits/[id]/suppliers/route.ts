@@ -1,20 +1,32 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
 import { discoverLocalSuppliers } from "@/lib/local-suppliers"
+import { getPaidPursuitUserId } from "@/lib/pursuit-access"
+
+async function paidUserId() {
+  const access = await getPaidPursuitUserId()
+  if (!access.authenticated || !access.userId) {
+    return { userId: null, response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+  }
+  if (!access.entitled) {
+    return {
+      userId: null,
+      response: NextResponse.json({ error: "An active subscription is required to use supplier discovery." }, { status: 403 }),
+    }
+  }
+  return { userId: access.userId, response: null }
+}
 
 export async function GET(
   _req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const access = await paidUserId()
+  if (!access.userId) return access.response!
 
   const { id } = await context.params
   const pursuit = await prisma.pursuit.findFirst({
-    where: { id, userId: session.user.id },
+    where: { id, userId: access.userId },
   })
   if (!pursuit) return NextResponse.json({ error: "Pursuit not found" }, { status: 404 })
 
@@ -30,14 +42,12 @@ export async function POST(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const access = await paidUserId()
+  if (!access.userId) return access.response!
 
   const { id } = await context.params
   const pursuit = await prisma.pursuit.findFirst({
-    where: { id, userId: session.user.id },
+    where: { id, userId: access.userId },
     include: { bid: true },
   })
   if (!pursuit) return NextResponse.json({ error: "Pursuit not found" }, { status: 404 })
