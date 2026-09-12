@@ -20,6 +20,11 @@ const pursuitInclude = {
       { createdAt: "asc" as const },
     ],
   },
+  estimate: true,
+  quotes: {
+    orderBy: { version: "desc" as const },
+    take: 1,
+  },
 }
 
 async function getActiveUserId() {
@@ -115,4 +120,35 @@ export async function POST(req: Request) {
   })
 
   return NextResponse.json({ pursuit })
+}
+
+export async function DELETE(req: Request) {
+  const { userId, entitled } = await getActiveUserId()
+  if (!userId) {
+    return NextResponse.json({ error: "Sign in to manage pursuits" }, { status: 401 })
+  }
+  if (!entitled) {
+    return NextResponse.json(
+      { error: "An active NAICS Direct subscription is required to manage pursuits." },
+      { status: 403 }
+    )
+  }
+
+  const url = new URL(req.url)
+  const pursuitId = url.searchParams.get("id")?.trim()
+  if (!pursuitId) {
+    return NextResponse.json({ error: "Missing pursuit id" }, { status: 400 })
+  }
+
+  const pursuit = await prisma.pursuit.findFirst({
+    where: { id: pursuitId, userId },
+    select: { id: true },
+  })
+
+  if (!pursuit) {
+    return NextResponse.json({ error: "Pursuit not found" }, { status: 404 })
+  }
+
+  await prisma.pursuit.delete({ where: { id: pursuit.id } })
+  return NextResponse.json({ success: true })
 }
