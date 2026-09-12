@@ -16,6 +16,8 @@ import {
   AlertTriangle,
   ArrowRight,
   MapPin,
+  History,
+  Trash2,
 } from "lucide-react"
 
 interface Pursuit {
@@ -28,7 +30,7 @@ interface Pursuit {
   supplierQuoteDeadline: string | null
   suppliers?: Array<{ id: string }>
   estimate?: { recommendedPrice: number } | null
-  quotes?: Array<{ id: string }>
+  quotes?: Array<{ id: string; totalPrice: number }>
   bid: {
     noticeId: string
     title: string
@@ -47,9 +49,19 @@ function formatDate(value: string | null) {
   return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 }
 
+function formatMoney(value: number | null | undefined) {
+  if (value === null || value === undefined) return null
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value)
+}
+
 function daysUntil(value: string | null) {
   if (!value) return null
   return Math.ceil((new Date(value).getTime() - Date.now()) / 86400000)
+}
+
+function isExpired(item: Pursuit) {
+  if (!item.bid.responseDeadline) return false
+  return new Date(item.bid.responseDeadline).getTime() < Date.now()
 }
 
 function urgencyClass(days: number | null) {
@@ -68,6 +80,7 @@ export default function PursuitsPage() {
   const [pursuits, setPursuits] = useState<Pursuit[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [removingId, setRemovingId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (status !== "authenticated") return
@@ -90,9 +103,49 @@ export default function PursuitsPage() {
     if (status === "unauthenticated") setLoading(false)
   }, [status, load])
 
-  const active = useMemo(() => pursuits.filter(item => item.decision === "PURSUE"), [pursuits])
-  const watching = useMemo(() => pursuits.filter(item => item.decision === "WATCH"), [pursuits])
-  const upcoming = useMemo(() => active.filter(item => item.bid.responseDeadline).sort((a, b) => new Date(a.bid.responseDeadline!).getTime() - new Date(b.bid.responseDeadline!).getTime()).slice(0, 10), [active])
+  const active = useMemo(
+    () => pursuits.filter(item => item.decision === "PURSUE" && !isExpired(item)),
+    [pursuits]
+  )
+  const watching = useMemo(
+    () => pursuits.filter(item => item.decision === "WATCH" && !isExpired(item)),
+    [pursuits]
+  )
+  const history = useMemo(
+    () => pursuits
+      .filter(item => item.decision === "PASS" || isExpired(item))
+      .sort((a, b) => {
+        const aTime = a.bid.responseDeadline ? new Date(a.bid.responseDeadline).getTime() : 0
+        const bTime = b.bid.responseDeadline ? new Date(b.bid.responseDeadline).getTime() : 0
+        return bTime - aTime
+      }),
+    [pursuits]
+  )
+  const upcoming = useMemo(
+    () => active
+      .filter(item => item.bid.responseDeadline)
+      .sort((a, b) => new Date(a.bid.responseDeadline!).getTime() - new Date(b.bid.responseDeadline!).getTime())
+      .slice(0, 10),
+    [active]
+  )
+
+  async function removePursuit(item: Pursuit) {
+    const confirmed = window.confirm(`Remove “${item.bid.title}” from your pursuit history? This permanently deletes your saved pursuit notes, suppliers, estimates, and quote drafts for this opportunity.`)
+    if (!confirmed) return
+
+    setRemovingId(item.id)
+    setError(null)
+    try {
+      const response = await fetch(`/api/pursuits?id=${encodeURIComponent(item.id)}`, { method: "DELETE" })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || "Could not remove pursuit")
+      setPursuits(current => current.filter(pursuit => pursuit.id !== item.id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not remove pursuit")
+    } finally {
+      setRemovingId(null)
+    }
+  }
 
   if (status === "unauthenticated") {
     return <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6"><div className="text-center max-w-md"><Crosshair className="w-10 h-10 text-indigo-400 mx-auto mb-4" /><h1 className="text-2xl font-bold text-white">Your Bid Pipeline</h1><p className="text-slate-400 mt-2 mb-6">Sign in to save and manage opportunities.</p><Button asChild className="bg-indigo-600 hover:bg-indigo-500"><Link href="/auth/signin">Sign In</Link></Button></div></div>
@@ -103,7 +156,17 @@ export default function PursuitsPage() {
       <AppNav />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-7"><div><h1 className="text-3xl font-bold text-white">Government Bid Pipeline</h1><p className="text-slate-400 mt-1">Everything you decide to chase, from review through award.</p></div><div className="flex gap-2"><Badge className="bg-indigo-500/10 text-indigo-300 border-indigo-500/30">{active.length} active</Badge><Badge className="bg-slate-800 text-slate-300 border-slate-700">{watching.length} watching</Badge></div></div>
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Government Bid Pipeline</h1>
+            <p className="text-slate-400 mt-1">Active pursuits stay focused here. Closed deadlines move into history automatically.</p>
+          </div>
+          <div className="flex gap-2">
+            <Badge className="bg-indigo-500/10 text-indigo-300 border-indigo-500/30">{active.length} active</Badge>
+            <Badge className="bg-slate-800 text-slate-300 border-slate-700">{watching.length} watching</Badge>
+            <Badge className="bg-slate-800 text-slate-400 border-slate-700">{history.length} history</Badge>
+          </div>
+        </div>
 
         {error && <div className="mb-5 bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-300 text-sm flex gap-2"><AlertTriangle className="w-4 h-4 mt-0.5" />{error}</div>}
 
@@ -118,6 +181,11 @@ export default function PursuitsPage() {
               })}</div>}
 
               {watching.length > 0 && <div className="mt-8"><h2 className="text-white font-semibold flex items-center gap-2 mb-3"><Eye className="w-4 h-4 text-slate-400" />Watching</h2><div className="space-y-2">{watching.map(item => <div key={item.id} className="bg-slate-900/60 border border-slate-800 rounded-lg p-4 flex items-center gap-3"><div className="flex-1 min-w-0"><p className="text-slate-200 text-sm font-medium truncate">{item.bid.title}</p><p className="text-slate-500 text-xs mt-1">Due {formatDate(item.bid.responseDeadline)}</p></div><Button size="sm" variant="outline" className="border-slate-700 text-slate-300" asChild><Link href={`/pursuits/${item.id}`}>Review</Link></Button></div>)}</div></div>}
+
+              {history.length > 0 && <div className="mt-10"><div className="flex items-center justify-between gap-3 mb-3"><h2 className="text-white font-semibold flex items-center gap-2"><History className="w-4 h-4 text-slate-400" />Pursuit History</h2><p className="text-xs text-slate-500">Closed deadlines move here automatically.</p></div><div className="space-y-3">{history.map(item => {
+                const plannedPrice = item.quotes?.[0]?.totalPrice ?? item.estimate?.recommendedPrice ?? null
+                return <div key={item.id} className="bg-slate-900/60 border border-slate-800 rounded-xl p-4"><div className="flex flex-col sm:flex-row sm:items-start gap-4"><div className="flex-1 min-w-0"><div className="flex flex-wrap gap-2 mb-2"><Badge className="bg-slate-800 text-slate-400 border-slate-700">{item.decision === "PASS" ? "Passed" : "Closed"}</Badge>{item.bid.naicsCode && <Badge className="bg-slate-900 text-slate-500 border-slate-800 font-mono">NAICS {item.bid.naicsCode}</Badge>}</div><p className="text-slate-200 text-sm font-medium">{item.bid.title}</p><p className="text-slate-500 text-xs mt-1">{item.bid.agency || "Federal Agency"}{item.bid.solicitationNumber ? ` · ${item.bid.solicitationNumber}` : ""}</p><div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-xs text-slate-500"><span>Closed {formatDate(item.bid.responseDeadline)}</span>{plannedPrice !== null && <span>Your planned quote: <span className="text-slate-300">{formatMoney(plannedPrice)}</span></span>}</div><p className="text-xs text-slate-600 mt-2">Keep this record for supplier, pricing, and future award-history comparisons.</p></div><div className="flex sm:flex-col gap-2 sm:w-36"><Button size="sm" variant="outline" className="border-slate-700 text-slate-300 flex-1" asChild><Link href={`/pursuits/${item.id}`}>Open History</Link></Button><Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 flex-1" disabled={removingId === item.id} onClick={() => removePursuit(item)}>{removingId === item.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}<span className="ml-1">Remove</span></Button></div></div></div>
+              })}</div></div>}
             </section>
 
             <aside><div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden sticky top-24"><div className="p-4 border-b border-slate-800"><h2 className="text-white font-semibold flex items-center gap-2"><CalendarDays className="w-4 h-4 text-indigo-400" />Upcoming Deadlines</h2></div>{upcoming.length === 0 ? <div className="p-6 text-slate-600 text-sm text-center">No active deadlines yet.</div> : <div className="divide-y divide-slate-800">{upcoming.map(item => { const days=daysUntil(item.bid.responseDeadline); return <Link key={item.id} href={`/pursuits/${item.id}`} className="block p-4 hover:bg-slate-800/30"><p className="text-slate-200 text-xs font-medium line-clamp-2">{item.bid.title}</p><p className={`text-xs mt-2 flex items-center gap-1 ${urgencyClass(days)}`}><Clock3 className="w-3 h-3" />{formatDate(item.bid.responseDeadline)}{days !== null && days >= 0 ? ` · ${days} days` : ""}</p></Link>})}</div>}</div></aside>
