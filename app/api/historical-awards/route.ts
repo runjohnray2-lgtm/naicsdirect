@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { getPaidPursuitUserId } from "@/lib/pursuit-access"
 
 export const dynamic = "force-dynamic"
 
@@ -11,6 +12,10 @@ function isoDateYearsAgo(years: number) {
 }
 
 export async function GET(req: NextRequest) {
+  const access = await getPaidPursuitUserId()
+  if (!access.authenticated || !access.userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (!access.entitled) return NextResponse.json({ error: "Start a plan to use historical award research." }, { status: 403 })
+
   const keyword = req.nextUrl.searchParams.get("keyword")?.trim() ?? ""
   const naics = req.nextUrl.searchParams.get("naics")?.trim() ?? ""
   const yearsRaw = Number(req.nextUrl.searchParams.get("years") ?? "5")
