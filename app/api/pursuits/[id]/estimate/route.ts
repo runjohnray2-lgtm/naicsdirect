@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/db"
+import { getPaidPursuitUserId } from "@/lib/pursuit-access"
 
 const COST_FIELDS = [
   "supplierCost",
@@ -27,6 +27,20 @@ function calculatePrice(costs: number[], marginPct: number) {
   return { totalCost, recommendedPrice, grossProfit }
 }
 
+async function paidUserId() {
+  const access = await getPaidPursuitUserId()
+  if (!access.authenticated || !access.userId) {
+    return { userId: null, response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
+  }
+  if (!access.entitled) {
+    return {
+      userId: null,
+      response: NextResponse.json({ error: "An active subscription is required to use pricing tools." }, { status: 403 }),
+    }
+  }
+  return { userId: access.userId, response: null }
+}
+
 async function ownedPursuit(id: string, userId: string) {
   return prisma.pursuit.findFirst({ where: { id, userId } })
 }
@@ -35,11 +49,11 @@ export async function GET(
   _req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const access = await paidUserId()
+  if (!access.userId) return access.response!
 
   const { id } = await context.params
-  if (!(await ownedPursuit(id, session.user.id))) {
+  if (!(await ownedPursuit(id, access.userId))) {
     return NextResponse.json({ error: "Pursuit not found" }, { status: 404 })
   }
 
@@ -55,11 +69,11 @@ export async function PUT(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const access = await paidUserId()
+  if (!access.userId) return access.response!
 
   const { id } = await context.params
-  if (!(await ownedPursuit(id, session.user.id))) {
+  if (!(await ownedPursuit(id, access.userId))) {
     return NextResponse.json({ error: "Pursuit not found" }, { status: 404 })
   }
 
