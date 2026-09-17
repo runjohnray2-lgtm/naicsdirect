@@ -204,7 +204,7 @@ export default function NicheManager() {
               : "Queue for Next Billing Cycle"}
       </button>
       {entitlement.selectedNiches.length > 0 && (
-        <Link href="/dashboard" className="block text-center mt-4 text-sm font-semibold text-indigo-300 hover:text-white">Browse Your Bids →</Link>
+        <Link href={`/dashboard?niche=${encodeURIComponent(entitlement.selectedNiches[0])}`} className="block text-center mt-4 text-sm font-semibold text-indigo-300 hover:text-white">Browse Your Bids →</Link>
       )}
     </div>
   )
