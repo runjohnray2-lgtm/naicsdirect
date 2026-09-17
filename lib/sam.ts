@@ -33,7 +33,8 @@ export async function fetchOpportunitiesByNaics(
   postedFrom: string,
   postedTo: string,
   apiKey: string,
-  noticeTypes = "o,k,p"
+  noticeTypes = "o,k,p",
+  throwOnError = false
 ): Promise<SamOpportunity[]> {
   const params = new URLSearchParams({
     api_key: apiKey,
@@ -52,7 +53,9 @@ export async function fetchOpportunitiesByNaics(
     )
 
     if (!res.ok) {
-      console.error(`SAM API error for NAICS ${naicsCode}: ${res.status} ${res.statusText}`)
+      const message = `SAM API error for NAICS ${naicsCode}: ${res.status} ${res.statusText}`
+      console.error(message)
+      if (throwOnError) throw new Error(message)
       return []
     }
 
@@ -63,6 +66,7 @@ export async function fetchOpportunitiesByNaics(
     return opportunities.filter((o) => o.naicsCode === naicsCode)
   } catch (err) {
     console.error(`SAM fetch failed for NAICS ${naicsCode}:`, err)
+    if (throwOnError) throw err
     return []
   }
 }

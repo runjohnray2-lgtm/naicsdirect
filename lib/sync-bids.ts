@@ -28,7 +28,6 @@ export function nichesForSyncGroup(group: string): Niche[] | null {
 }
 
 export async function syncBidNiches(niches: Niche[], apiKey: string) {
-  // Expired notices must disappear even if a later SAM request is slow or fails.
   const expiredResult = await prisma.bid.updateMany({
     where: {
       responseDeadline: { lt: new Date() },
@@ -60,7 +59,9 @@ export async function syncBidNiches(niches: Niche[], apiKey: string) {
           naicsCode,
           postedFrom,
           postedTo,
-          apiKey
+          apiKey,
+          "o,k,p",
+          true
         )
 
         for (const opp of opportunities) {
@@ -75,6 +76,7 @@ export async function syncBidNiches(niches: Niche[], apiKey: string) {
           const placeCountry = place?.country?.code ?? place?.country?.name ?? null
           const responseDeadline = opp.responseDeadLine ? new Date(opp.responseDeadLine) : null
           const sourceModifiedAt = opp.modifiedDate ? new Date(opp.modifiedDate) : null
+          const isOpen = responseDeadline ? responseDeadline > new Date() : true
 
           const existing = await prisma.bid.findUnique({ where: { noticeId: opp.noticeId } })
 
@@ -99,7 +101,7 @@ export async function syncBidNiches(niches: Niche[], apiKey: string) {
               placeState,
               placeZip,
               placeCountry,
-              active: responseDeadline ? responseDeadline > new Date() : true,
+              active: isOpen,
               updatedAt: new Date(),
             },
             create: {
@@ -122,7 +124,7 @@ export async function syncBidNiches(niches: Niche[], apiKey: string) {
               placeState,
               placeZip,
               placeCountry,
-              active: responseDeadline ? responseDeadline > new Date() : true,
+              active: isOpen,
             },
           })
 
