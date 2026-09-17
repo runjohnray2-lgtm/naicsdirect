@@ -4,6 +4,8 @@ import { useState, Suspense } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
+import { safeCallbackUrl } from "@/lib/auth-navigation"
+import { PLANS } from "@/lib/plans"
 
 function SignInForm() {
   const [email, setEmail] = useState("")
@@ -11,33 +13,35 @@ function SignInForm() {
   const [error, setError] = useState("")
   const searchParams = useSearchParams()
   const router = useRouter()
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard"
+  const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"))
+  const chosenPlan = PLANS.find(plan => callbackUrl === `/pricing?plan=${plan.id}`)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
 
-    // BUG FIX: callbackUrl was computed above but never passed into signIn(), so
-    // next-auth defaulted to the CURRENT page URL (/auth/signin itself) as the
-    // post-verification redirect target. Every successful magic-link click was
-    // landing back on the sign-in page, which looked identical to the link failing.
-    const result = await signIn("resend", {
-      email,
-      redirect: false,
-      callbackUrl,
-    })
-
-    if (result?.error) {
-      setError("Something went wrong. Please try again.")
+    try {
+      const result = await signIn("resend", {
+        email: email.trim(),
+        redirect: false,
+        callbackUrl,
+      })
+      if (!result || result.error) {
+        setError("We couldn't send your sign-in link. Please try again.")
+        return
+      }
+      router.push(`/auth/verify?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+    } catch {
+      setError("We couldn't connect. Check your connection and try again.")
+    } finally {
       setLoading(false)
-    } else {
-      router.push("/auth/verify")
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {chosenPlan && <p className="rounded-lg bg-indigo-500/10 p-3 text-sm text-indigo-200">{chosenPlan.name}: 7 days free, then ${chosenPlan.price}/month. Verify your email, then continue to secure checkout.</p>}
       <div>
         <label
           htmlFor="email"
@@ -48,6 +52,7 @@ function SignInForm() {
         <input
           id="email"
           type="email"
+          autoComplete="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -57,7 +62,7 @@ function SignInForm() {
       </div>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm text-red-400">
+        <div role="alert" className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-sm text-red-400">
           {error}
         </div>
       )}
@@ -67,11 +72,11 @@ function SignInForm() {
         disabled={loading}
         className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors text-sm"
       >
-        {loading ? "Sending magic link..." : "Send Magic Link"}
+        {loading ? "Sending sign-in link..." : "Email Me a Sign-In Link"}
       </button>
 
       <p className="text-center text-xs text-slate-500">
-        No password needed. We send a one-click sign-in link.
+        New here? This also creates your account. No password needed.
       </p>
     </form>
   )
@@ -94,9 +99,9 @@ export default function SignInPage() {
       <div className="flex-1 flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Sign In</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">Create an account or sign in</h1>
             <p className="text-slate-400 text-sm">
-              Enter your email and we&apos;ll send a magic link.
+              Enter your email to get a secure sign-in link.
             </p>
           </div>
 
@@ -111,12 +116,12 @@ export default function SignInPage() {
           </div>
 
           <p className="text-center text-xs text-slate-500 mt-6">
-            No account?{" "}
+            Want to compare plans?{" "}
             <Link
               href="/pricing"
               className="text-indigo-400 hover:text-indigo-300 transition-colors"
             >
-              Start a free trial
+              View pricing
             </Link>
           </p>
         </div>

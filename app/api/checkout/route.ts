@@ -91,7 +91,7 @@ export async function POST(req: Request) {
             "NAICS Direct is operated by Radiantz. Your 7-day free trial starts today. Cancel before the trial ends to avoid the first monthly charge.",
         },
       },
-      success_url: `${baseUrl}/account?success=true`,
+      success_url: `${baseUrl}/account?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/pricing?canceled=true`,
       metadata: { userId },
     })

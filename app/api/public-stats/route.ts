@@ -16,9 +16,14 @@ export async function GET() {
   try {
     const now = new Date()
     const in48Hours = new Date(now.getTime() + 48 * 60 * 60 * 1000)
+    const openWhere = {
+      active: true,
+      niche: { not: "radiantz" },
+      OR: [{ responseDeadline: null }, { responseDeadline: { gt: now } }],
+    }
 
     const [total, urgent, later, lastSynced] = await Promise.all([
-      prisma.bid.count({ where: { active: true, niche: { not: "radiantz" } } }),
+      prisma.bid.count({ where: openWhere }),
       prisma.bid.findMany({
         where: {
           active: true,
@@ -61,7 +66,6 @@ export async function GET() {
       return {
         ...bid,
         locked: false,
-        // In the free preview, urgency is more useful than the normal set-aside badge.
         setAside: hours ? `Due in ~${hours}h` : bid.setAside,
       }
     })

@@ -1,10 +1,12 @@
 import Link from "next/link"
+import { safeCallbackUrl } from "@/lib/auth-navigation"
 
 export const metadata = {
   title: "Check Your Email — NAICS Direct",
 }
 
-export default function VerifyPage() {
+export default async function VerifyPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string }> }) {
+  const callbackUrl = safeCallbackUrl((await searchParams).callbackUrl)
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col text-white">
       <nav className="border-b border-slate-800 py-4">
@@ -27,13 +29,12 @@ export default function VerifyPage() {
             Check Your Email
           </h1>
           <p className="text-slate-400 mb-6">
-            We sent a magic link to your email. Click it to sign in — no
-            password needed. The link expires in 10 minutes.
+            Open the sign-in email and select Confirm Sign In. Your link expires in 10 minutes.
           </p>
           <p className="text-xs text-slate-500">
             Didn&apos;t get it? Check your spam or{" "}
             <Link
-              href="/auth/signin"
+              href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
               className="text-indigo-400 hover:text-indigo-300 transition-colors"
             >
               try again

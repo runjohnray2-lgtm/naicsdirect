@@ -1,17 +1,21 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { isSignInConfirmationUrl } from "@/lib/auth-navigation"
 
 function ConfirmContent() {
   const searchParams = useSearchParams()
   const url = searchParams.get("url")
+  const [error, setError] = useState("")
 
   const handleConfirm = () => {
-    if (url) {
-      window.location.href = url
+    if (!isSignInConfirmationUrl(url, window.location.origin)) {
+      setError("This sign-in link is invalid. Request a new link to continue.")
+      return
     }
+    window.location.href = url!
   }
 
   if (!url) {
@@ -33,9 +37,9 @@ function ConfirmContent() {
   return (
     <div className="text-center">
       <p className="text-slate-400 text-sm mb-6">
-        Click below to finish signing in. This confirms a real click (not an
-        automated email scanner) before your one-time link is used.
+        Select the button below to securely sign in to NAICS Direct.
       </p>
+      {error && <p role="alert" className="text-red-400 text-sm mb-4">{error} <Link href="/auth/signin" className="underline">Get a new link</Link></p>}
       <button
         onClick={handleConfirm}
         className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-lg transition-colors text-sm"

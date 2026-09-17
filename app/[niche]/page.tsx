@@ -65,11 +65,16 @@ export default async function NicheLandingPage({ params }: Props) {
   let dateModified: string | undefined
 
   try {
-    const where = { niche: nicheData.id, active: true }
+    const now = new Date()
+    const where = {
+      niche: nicheData.id,
+      active: true,
+      OR: [{ responseDeadline: null }, { responseDeadline: { gt: now } }],
+    }
     const [rows, count, lastSynced] = await Promise.all([
       prisma.bid.findMany({ where, orderBy: { responseDeadline: "asc" }, take: 3, select: { title: true, agency: true, responseDeadline: true, setAside: true } }),
       prisma.bid.count({ where }),
-      prisma.bid.findFirst({ where, orderBy: { updatedAt: "desc" }, select: { updatedAt: true } }),
+      prisma.bid.findFirst({ where: { niche: nicheData.id }, orderBy: { updatedAt: "desc" }, select: { updatedAt: true } }),
     ])
     activeBids = rows
     activeCount = count

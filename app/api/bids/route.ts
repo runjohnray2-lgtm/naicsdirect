@@ -8,7 +8,8 @@ import { getEntitlement } from "@/lib/entitlement"
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const nicheId = searchParams.get("niche") || ""
-  const page = parseInt(searchParams.get("page") || "0", 10)
+  const requestedPage = Number(searchParams.get("page") || "0")
+  const page = Number.isSafeInteger(requestedPage) && requestedPage >= 0 ? requestedPage : 0
   const niche = NICHE_MAP[nicheId]
 
   if (!niche) {
@@ -18,12 +19,10 @@ export async function GET(request: NextRequest) {
   const session = await auth()
   const entitlement = await getEntitlement(session?.user?.id)
 
-  // Internal watchlists are never part of the anonymous/public preview.
   if (niche.public === false && !session?.user?.id) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
-  // Former subscribers do not regain a full feed after canceling or going past due.
   if (session?.user?.id && !entitlement.isGated) {
     const sub = await prisma.subscription.findUnique({ where: { userId: session.user.id } })
     if (sub && sub.status !== "trialing" && sub.status !== "active") {
@@ -51,9 +50,13 @@ export async function GET(request: NextRequest) {
   const effectivePage = isFreePreview ? 0 : page
 
   try {
-    const where = nicheId === "radiantz"
+    const categoryWhere = nicheId === "radiantz"
       ? { naicsCode: { in: NICHE_MAP.radiantz.naicsCodes }, active: true }
       : { niche: nicheId, active: true }
+    const where = {
+      ...categoryWhere,
+      OR: [{ responseDeadline: null }, { responseDeadline: { gt: new Date() } }],
+    }
 
     const [rawBids, total] = await Promise.all([
       prisma.bid.findMany({
@@ -100,8 +103,6 @@ export async function GET(request: NextRequest) {
         })
         .slice(0, 2)
 
-      // If there is nothing closing within 48 hours, still show the nearest real
-      // opportunity so the preview proves the feed is live.
       const visible = urgent.length > 0 ? urgent : rawBids.slice(0, 1)
       const visibleIds = new Set(visible.map((b) => b.id))
       const locked = rawBids.filter((b) => !visibleIds.has(b.id)).slice(0, 3)
