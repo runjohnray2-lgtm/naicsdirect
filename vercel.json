@@ -1,7 +1,27 @@
 {
   "crons": [
     {
-      "path": "/api/cron/sync-bids",
+      "path": "/api/cron/sync-bids/internal",
+      "schedule": "10 10 * * *"
+    },
+    {
+      "path": "/api/cron/sync-bids/public-a",
+      "schedule": "20 10 * * *"
+    },
+    {
+      "path": "/api/cron/sync-bids/public-b",
+      "schedule": "30 10 * * *"
+    },
+    {
+      "path": "/api/cron/sync-bids/public-c",
+      "schedule": "40 10 * * *"
+    },
+    {
+      "path": "/api/cron/sync-bids/public-d",
+      "schedule": "50 10 * * *"
+    },
+    {
+      "path": "/api/cron/sync-bids/public-e",
       "schedule": "0 11 * * *"
     },
     {
