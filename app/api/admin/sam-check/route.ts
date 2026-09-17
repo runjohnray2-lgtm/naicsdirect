@@ -2,6 +2,8 @@ import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import { formatSamDate } from "@/lib/sam"
 
+export const dynamic = "force-dynamic"
+
 const ADMIN_EMAILS = new Set(["agent@radiantz.com", "ray@radiantz.com"])
 
 export async function GET(req: Request) {
