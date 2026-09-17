@@ -6,10 +6,17 @@ import { prisma } from "@/lib/db"
 async function getOrCreatePortalConfiguration() {
   const existing = await stripe.billingPortal.configurations.list({
     active: true,
-    limit: 1,
+    limit: 100,
   })
 
-  if (existing.data[0]) return existing.data[0].id
+  const compatible = existing.data.find((configuration) =>
+    configuration.features.payment_method_update.enabled &&
+    configuration.features.invoice_history.enabled &&
+    configuration.features.subscription_cancel.enabled &&
+    configuration.features.subscription_cancel.mode === "at_period_end"
+  )
+
+  if (compatible) return compatible.id
 
   const configuration = await stripe.billingPortal.configurations.create(
     {
@@ -45,7 +52,7 @@ async function getOrCreatePortalConfiguration() {
         },
       },
     },
-    { idempotencyKey: "naics-direct-customer-portal-v1" }
+    { idempotencyKey: "naics-direct-customer-portal-v2" }
   )
 
   return configuration.id
