@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Bid } from "@/types"
 import { Loader2, SlidersHorizontal } from "lucide-react"
+import NicheManager from "@/components/niche-manager"
+import NotificationSettings from "@/components/notification-settings"
+import CustomCategories from "@/components/custom-categories"
 
 interface Category {
   id: string
@@ -68,11 +71,11 @@ export default function CategoriesPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
           <div><h1 className="text-3xl font-bold">My Categories</h1><p className="text-slate-400 mt-1">Your own live government-bid feeds built around the work you actually want.</p></div>
-          <Button asChild variant="outline" className="border-slate-700 text-slate-300"><Link href="/account">Manage Categories & Alerts</Link></Button>
+          <Button asChild variant="outline" className="border-slate-700 text-slate-300"><a href="#manage-categories">Manage Categories & Alerts</a></Button>
         </div>
 
         {loading ? <div className="py-16 text-center text-slate-500"><Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />Loading categories…</div> : categories.length === 0 ? (
-          <div className="border border-dashed border-slate-700 rounded-2xl p-12 text-center"><SlidersHorizontal className="w-9 h-9 text-indigo-400 mx-auto mb-3" /><h2 className="text-xl font-semibold">Build your first personal category</h2><p className="text-slate-500 text-sm mt-2 mb-5">Combine NAICS codes, keywords, states, and agencies into your own feed.</p><Button asChild className="bg-indigo-600 hover:bg-indigo-500"><Link href="/account">Create Category</Link></Button></div>
+          <div className="border border-dashed border-slate-700 rounded-2xl p-12 text-center"><SlidersHorizontal className="w-9 h-9 text-indigo-400 mx-auto mb-3" /><h2 className="text-xl font-semibold">Build your first personal category</h2><p className="text-slate-500 text-sm mt-2 mb-5">Combine NAICS codes, keywords, states, and agencies into your own feed.</p><Button asChild className="bg-indigo-600 hover:bg-indigo-500"><a href="#personal-categories">Create Category</a></Button></div>
         ) : (
           <div className="grid lg:grid-cols-[280px_1fr] gap-6">
             <aside className="space-y-2">
@@ -85,6 +88,19 @@ export default function CategoriesPage() {
               {loadingBids ? <div className="py-16 text-center text-slate-500"><Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />Finding matches…</div> : bids.length === 0 ? <div className="border border-slate-800 bg-slate-900 rounded-xl p-10 text-center text-slate-500">No active matches right now. NAICS Direct will keep watching this category.</div> : <div className="space-y-3">{bids.map(bid => <BidCard key={bid.id} bid={bid} />)}</div>}
             </section>
           </div>
+        )}
+        {status === "authenticated" && (
+          <section id="manage-categories" className="mt-12 pt-10 border-t border-slate-800">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-white">Manage Categories & Alerts</h2>
+              <p className="text-slate-400 mt-1">Everything that controls what work you see and how NAICS Direct alerts you now lives here.</p>
+            </div>
+            <div className="space-y-6">
+              <NicheManager />
+              <div id="personal-categories"><CustomCategories /></div>
+              <NotificationSettings />
+            </div>
+          </section>
         )}
       </main>
     </div>
