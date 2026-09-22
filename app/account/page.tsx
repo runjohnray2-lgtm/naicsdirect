@@ -4,10 +4,6 @@ import { stripe } from "@/lib/stripe"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import AccountClient from "@/components/account-client"
-import CompanyProfile from "@/components/company-profile"
-import NicheManager from "@/components/niche-manager"
-import NotificationSettings from "@/components/notification-settings"
-import CustomCategories from "@/components/custom-categories"
 import AppNav from "@/components/app-nav"
 import ConversionTracker from "@/components/conversion-tracker"
 import CheckoutStatus from "@/components/checkout-status"
@@ -124,7 +120,7 @@ export default async function AccountPage({
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
         <h1 className="text-3xl font-bold text-white mb-2">Your Account</h1>
-        <p className="text-slate-400 mb-10">Manage your company profile, service, billing, bid alerts, and personal categories.</p>
+        <p className="text-slate-400 mb-10">Manage your sign-in, plan, billing, and subscription.</p>
 
         {returnedFromCheckout && !showSuccess && (
           <CheckoutStatus verified={Boolean(checkoutSubscriptionId)} />
@@ -161,25 +157,26 @@ export default async function AccountPage({
             }
           />
           {hasAccess ? (
-            <>
-              <NicheManager />
-              <NotificationSettings />
-              <CompanyProfile />
-              <CustomCategories />
-            </>
+            <section className="grid sm:grid-cols-2 gap-4">
+              <Link href="/categories" className="bg-slate-900 border border-slate-800 hover:border-indigo-500/40 rounded-2xl p-5 transition-colors">
+                <p className="text-white font-semibold">Categories & Alerts</p>
+                <p className="text-sm text-slate-500 mt-1">Choose your plan categories, build personal feeds, and manage bid alerts.</p>
+              </Link>
+              <Link href="/quote-profile" className="bg-slate-900 border border-slate-800 hover:border-indigo-500/40 rounded-2xl p-5 transition-colors">
+                <p className="text-white font-semibold">Federal Quote Profile</p>
+                <p className="text-sm text-slate-500 mt-1">Set the company information that NAICS Direct inserts into quote drafts.</p>
+              </Link>
+            </section>
           ) : (
-            <>
-              <CompanyProfile />
-              <section className="bg-slate-900 border border-indigo-500/20 rounded-2xl p-6 text-center">
-                <h2 className="text-white font-semibold">Subscriber tools unlock with your trial</h2>
-                <p className="text-sm text-slate-400 mt-2 max-w-xl mx-auto">
-                  Start a plan to choose your bid categories, create personal filters, receive matching alerts, and use pursuit, supplier, pricing, and quote-building tools.
-                </p>
-                <Link href="/pricing" className="inline-block mt-5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors">
-                  Start 7-Day Free Trial
-                </Link>
-              </section>
-            </>
+            <section className="bg-slate-900 border border-indigo-500/20 rounded-2xl p-6 text-center">
+              <h2 className="text-white font-semibold">Subscriber tools unlock with your trial</h2>
+              <p className="text-sm text-slate-400 mt-2 max-w-xl mx-auto">
+                Start a plan to choose bid categories, receive alerts, and use pursuit, supplier, pricing, and quote-building tools.
+              </p>
+              <Link href="/pricing" className="inline-block mt-5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors">
+                Start 7-Day Free Trial
+              </Link>
+            </section>
           )}
         </div>
       </div>
