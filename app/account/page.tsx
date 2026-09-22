@@ -40,10 +40,9 @@ export default async function AccountPage({
   const returnedFromCheckout = params.success === "true"
   const showPlanChanged = params.planChanged === "true"
 
-  const subscription = await prisma.subscription.findUnique({
+  let subscription = await prisma.subscription.findUnique({
     where: { userId },
   })
-  const hasAccess = subscription?.status === "trialing" || subscription?.status === "active"
 
   let checkoutSubscriptionId: string | null = null
   if (returnedFromCheckout && params.session_id?.startsWith("cs_")) {
@@ -53,11 +52,53 @@ export default async function AccountPage({
         checkoutSubscriptionId = typeof checkout.subscription === "string"
           ? checkout.subscription
           : checkout.subscription?.id ?? null
+
+        if (checkoutSubscriptionId && subscription?.stripeSubscriptionId !== checkoutSubscriptionId) {
+          const stripeSubscription = await stripe.subscriptions.retrieve(checkoutSubscriptionId)
+          const legacy = stripeSubscription as typeof stripeSubscription & { current_period_end?: number }
+          const firstItem = stripeSubscription.items.data[0] as typeof stripeSubscription.items.data[0] & { current_period_end?: number }
+          const periodEndUnix = legacy.current_period_end ?? firstItem?.current_period_end
+          if (!periodEndUnix) throw new Error("Stripe subscription period is missing")
+          const periodEnd = new Date(periodEndUnix * 1000)
+
+          await prisma.subscription.upsert({
+            where: { userId },
+            create: {
+              userId,
+              stripeCustomerId: typeof checkout.customer === "string" ? checkout.customer : checkout.customer?.id ?? "",
+              stripeSubscriptionId: stripeSubscription.id,
+              stripePriceId: stripeSubscription.items.data[0].price.id,
+              stripeCurrentPeriodEnd: periodEnd,
+              nicheLockedUntil: periodEnd,
+              status: stripeSubscription.status,
+              trialEnd: stripeSubscription.trial_end
+                ? new Date(stripeSubscription.trial_end * 1000)
+                : null,
+            },
+            update: {
+              stripeCustomerId: typeof checkout.customer === "string" ? checkout.customer : checkout.customer?.id ?? subscription?.stripeCustomerId ?? "",
+              stripeSubscriptionId: stripeSubscription.id,
+              stripePriceId: stripeSubscription.items.data[0].price.id,
+              stripeCurrentPeriodEnd: periodEnd,
+              nicheLockedUntil: periodEnd,
+              status: stripeSubscription.status,
+              trialEnd: stripeSubscription.trial_end
+                ? new Date(stripeSubscription.trial_end * 1000)
+                : null,
+            },
+          })
+
+          subscription = await prisma.subscription.findUnique({
+            where: { userId },
+          })
+        }
       }
     } catch (error) {
       console.error("Could not verify checkout return", error)
     }
   }
+
+  const hasAccess = subscription?.status === "trialing" || subscription?.status === "active"
 
   const showSuccess = Boolean(
     checkoutSubscriptionId &&
