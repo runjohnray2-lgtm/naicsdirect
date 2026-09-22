@@ -56,6 +56,12 @@ export default async function PricingPage({
           ))}
         </div>
 
+        <div className="mt-6 text-center">
+          <p className="text-xs text-slate-500">
+            NAICS Direct is operated by Radiantz. Secure subscription billing is processed through Radiantz&apos;s Stripe account, so you may see Radiantz on Stripe checkout and billing pages.
+          </p>
+        </div>
+
         <div className="mt-16">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-white mb-2">Built for the Real Bid Timeline</h2>
@@ -99,6 +105,7 @@ export default async function PricingPage({
             { q: "What is historical award intelligence?", a: "Past federal contract award information can help you research who has won similar work and the historical contract value. Historical totals are context, not a guaranteed future price or unit price." },
             { q: "How often is the opportunity data updated?", a: "SAM.gov opportunity data is refreshed every morning. Use the urgency filters to separate closing-soon notices from opportunities with enough time to pursue properly." },
             { q: "Can I change plans?", a: "Yes. Existing subscribers can switch plans here without creating a second subscription. Billing is prorated by Stripe." },
+            { q: "Why does Stripe show Radiantz?", a: "NAICS Direct is operated by Radiantz, and subscription billing is processed through Radiantz's Stripe account. Seeing Radiantz on Stripe checkout or billing pages is expected." },
           ].map((faq) => (
             <div key={faq.q} className="bg-slate-900 border border-slate-800 rounded-xl p-6">
               <p className="text-sm font-semibold text-white mb-2">{faq.q}</p>
@@ -109,7 +116,10 @@ export default async function PricingPage({
       </div>
 
       <footer className="border-t border-slate-800 py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center"><p className="text-xs text-slate-500">© 2026 NAICS Direct. All rights reserved.</p></div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center space-y-1">
+          <p className="text-xs text-slate-500">NAICS Direct is operated by Radiantz.</p>
+          <p className="text-xs text-slate-500">© 2026 NAICS Direct. All rights reserved.</p>
+        </div>
       </footer>
     </div>
   )
