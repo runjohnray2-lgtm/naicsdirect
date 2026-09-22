@@ -18,3 +18,6 @@ Deploy instantly on Vercel — just connect this repo.
 
 ## License
 MIT
+
+
+<!-- Production redeploy after SAM_API_KEY rotation: 2026-09-22 -->
