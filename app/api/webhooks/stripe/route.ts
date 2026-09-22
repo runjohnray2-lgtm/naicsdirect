@@ -10,6 +10,21 @@ function parsePending(raw: string | undefined): string[] {
   return raw.split(",").map((v) => v.trim()).filter(Boolean)
 }
 
+function subscriptionPeriod(subscription: Stripe.Subscription) {
+  const legacy = subscription as Stripe.Subscription & {
+    current_period_start?: number
+    current_period_end?: number
+  }
+  const firstItem = subscription.items.data[0] as Stripe.SubscriptionItem & {
+    current_period_start?: number
+    current_period_end?: number
+  }
+  const start = legacy.current_period_start ?? firstItem?.current_period_start
+  const end = legacy.current_period_end ?? firstItem?.current_period_end
+  if (!start || !end) throw new Error("Stripe subscription period is missing")
+  return { start, end }
+}
+
 export async function POST(req: Request) {
   const body = await req.text()
   const headersList = await headers()
@@ -42,7 +57,8 @@ export async function POST(req: Request) {
         const subscription = await stripe.subscriptions.retrieve(
           session.subscription as string
         )
-        const periodEnd = new Date(subscription.current_period_end * 1000)
+        const { end } = subscriptionPeriod(subscription)
+        const periodEnd = new Date(end * 1000)
 
         await prisma.subscription.upsert({
           where: { userId },
@@ -77,13 +93,14 @@ export async function POST(req: Request) {
         const userId = subscription.metadata?.userId
         if (!userId) break
 
-        const periodEnd = new Date(subscription.current_period_end * 1000)
+        const { start, end } = subscriptionPeriod(subscription)
+        const periodEnd = new Date(end * 1000)
         const pending = parsePending(subscription.metadata?.pending_niches)
         const effectiveAt = Number(subscription.metadata?.pending_niches_effective_at || 0)
         const newCycleHasStarted =
           pending.length > 0 &&
           effectiveAt > 0 &&
-          subscription.current_period_start >= effectiveAt
+          start >= effectiveAt
 
         const priceId = subscription.items.data[0].price.id
         const nicheLimit = nicheLimitForPriceId(priceId)
