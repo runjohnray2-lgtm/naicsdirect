@@ -37,9 +37,9 @@ export async function syncBidNiches(niches: Niche[], apiKey: string, lookbackDay
   })
 
   const today = new Date()
-  const sevenDaysAgo = new Date(today)
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-  const postedFrom = formatSamDate(sevenDaysAgo)
+  const lookbackStart = new Date(today)
+  lookbackStart.setDate(lookbackStart.getDate() - lookbackDays)
+  const postedFrom = formatSamDate(lookbackStart)
   const postedTo = formatSamDate(today)
 
   let totalSynced = 0
