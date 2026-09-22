@@ -27,7 +27,7 @@ export function nichesForSyncGroup(group: string): Niche[] | null {
   return niches.length === ids.length ? niches : null
 }
 
-export async function syncBidNiches(niches: Niche[], apiKey: string) {
+export async function syncBidNiches(niches: Niche[], apiKey: string, lookbackDays = 7) {
   const expiredResult = await prisma.bid.updateMany({
     where: {
       responseDeadline: { lt: new Date() },
